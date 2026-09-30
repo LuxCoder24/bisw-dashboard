@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BISW · IB Bulletin</title><meta name="description" content="A concept dashboard for the BISW IB community. All school content is sample data."><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"><script defer src="app.js"></script></head>
+<body><div class="display-shell">
+<header class="masthead"><div class="brand"><span class="brand-mark">B</span><div><strong>BISW<span class="brand-divider"> / </span>IB BULLETIN</strong><p>British International School of Washington</p></div></div><div class="header-date"><div id="date"></div><div class="live-clock"><span id="clock"></span><span>WASHINGTON, DC</span></div></div></header>
+<main id="dashboard">
+
+<div class="dashboard-grid">
+<section class="panel agenda"><div class="section-heading"><h2>Upcoming events</h2></div><div id="events"></div><div class="agenda-note">Times shown in Washington, DC time.</div></section>
+<section class="feature-card"><div class="feature-top"><span class="tag">FEATURED EVENT</span><span class="outline-label">COLLEGE & CAREERS</span></div><div class="feature-content"><h2 id="feature-title">University discovery fair</h2><p id="feature-description">Meet university representatives and discuss courses and applications.</p></div><div class="feature-bottom"><div><span id="feature-date">THURSDAY · OCT 1</span><strong id="feature-location">12:30 PM · IB common room</strong></div><button class="light-button" data-view="event">Expand event</button></div></section>
+<section class="panel weather"><div class="section-heading"><h2>Washington, DC</h2><span>SAMPLE WEATHER</span></div><div class="weather-main"><span class="weather-icon" aria-hidden="true">☀</span><strong>22°<span>C</span></strong><div>Mostly sunny<br><span>High 24° · Low 16°</span></div></div><div class="weather-bottom"><span>72°F</span></div></section>
+<section class="panel deadlines"><div class="section-heading"><h2>Deadlines</h2></div><div class="deadline-row"><span class="date-block"><strong>02</strong>OCT</span><div><span class="small-tag">IB YEAR 2</span><h3>Extended essay check-in</h3><p>Submit your draft to your supervisor.</p></div></div><div class="deadline-row"><span class="date-block"><strong>05</strong>OCT</span><div><span class="small-tag">IB YEAR 1 & 2</span><h3>CAS reflection update</h3><p>Update your CAS reflections.</p></div></div></section>
+<section class="panel notices"><div class="section-heading"><h2>IB notices</h2></div><div class="notice"><div><h3>CAS volunteering</h3><p>Contact the CAS coordinator for volunteering opportunities.</p></div></div><div class="notice"><div><h3>Student support</h3><p>Contact your tutor for academic or pastoral support.</p></div></div></section>
+</div></main>
+<main id="special-view" hidden></main>
+<footer class="display-footer"><div>Prototype · sample content</div><nav aria-label="Display views"><button data-view="dashboard" aria-pressed="true">Dashboard</button><button data-view="event" aria-pressed="false">Featured event</button><button data-view="alert" aria-pressed="false">Alert</button><button id="fullscreen">Full screen</button><a href="admin.html">Staff preview</a></nav></footer>
+<p id="status" class="status" role="status"></p>
+</div></body></html>
