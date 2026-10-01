@@ -1,87 +1,134 @@
-(() => {
-  'use strict';
-  const key = 'bisw-prototype-v1';
-  const defaults = {
-    events: [
-      {id:'a',title:'University application drop-in',date:'2026-09-30',time:'12:30',location:'College counseling office',audience:'IB YEAR 2'},
-      {id:'b',title:'Student-led study group',date:'2026-09-30',time:'15:30',location:'IB common room',audience:'IB YEAR 1 & 2'},
-      {id:'c',title:'University discovery fair',date:'2026-10-01',time:'12:30',location:'IB common room',audience:'IB YEAR 1 & 2'},
-      {id:'d',title:'Community volunteering',date:'2026-10-02',time:'15:30',location:'Meet at reception',audience:'CAS OPPORTUNITY'}
-    ],
-    feature:{title:'University discovery fair',description:'Meet university representatives and discuss courses and applications.',date:'THURSDAY · OCT 1',location:'12:30 PM · IB common room'},
-    alert:{title:'University visit: room change',description:'Sample announcement: the university visit has moved to the library. The start time is unchanged.',detail:'Contact the college counselor for further information.'},
-    view:'dashboard'
-  };
-  const $ = s => document.querySelector(s);
-  const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const clone = () => JSON.parse(JSON.stringify(defaults));
-  function read(){try{const x=JSON.parse(localStorage.getItem(key));return x&&Array.isArray(x.events)&&x.feature&&x.alert&&['dashboard','event','alert'].includes(x.view)?x:clone();}catch{return clone();}}
-  function migrateContent(x){
-    x.events=x.events.map(e=>({...e,location:String(e.location).replace(/sixth form/gi,'IB')}));
-    x.feature.location=String(x.feature.location).replace(/sixth form/gi,'IB');
-    if(x.feature.title==='Find your next direction.')x.feature.title=defaults.feature.title;
-    if(x.feature.description==='Explore your options at our sample university fair. Bring your questions. Leave with possibilities.')x.feature.description=defaults.feature.description;
-    if(x.alert.title==='A change to today’s plans.')x.alert.title=defaults.alert.title;
-    if(x.alert.detail==='Check with the college counselor if you have questions.')x.alert.detail=defaults.alert.detail;
-    return x;
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
+import { getAuth, setPersistence, browserSessionPersistence, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import { esc, dcDate, dateLabel, timeLabel, upcoming, activeView } from './helpers.js';
+
+export async function start(config) {
+  const app=initializeApp(config), db=getFirestore(app);
+  const admin=document.body.dataset.page==='admin';
+  const $=s=>document.querySelector(s);
+  const state={events:[],deadlines:[],notices:[],feature:null,alert:null,display:null};
+  const health=new Map();
+  let approved=false, editingId=null, stops=[], stopRole=null, auth=null;
+  const status=message=>{$('#status').textContent=message;};
+  function connection(){
+    $('#connection').textContent=!navigator.onLine?'Offline · information may be out of date':
+      [...health.values()].includes('error')?'Connection error · reload to retry':
+      health.size<6||[...health.values()].some(v=>v!=='live')?'Connecting · information may be out of date':'Connected';
   }
-  let data=migrateContent(read());
-  function status(message){$('#status').textContent=message;}
-  function save(){try{localStorage.setItem(key,JSON.stringify(data));return true;}catch{status('Browser storage is unavailable. Changes only last until this page closes.');return false;}}
-  const formatTime = t => {const [h,m]=t.split(':').map(Number);return `${h%12||12}:${String(m).padStart(2,'0')} ${h<12?'AM':'PM'}`;};
-  const formatDate = d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  const sorted = () => [...data.events].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  const admin = document.body.dataset.page==='admin';
+  function message(error){
+    console.error(error);
+    if(error.code==='permission-denied')return 'Access denied. Check your staff approval and published Firestore rules.';
+    if(error.code==='auth/too-many-requests')return 'Too many attempts. Please wait before trying again.';
+    if(error.code?.startsWith('auth/'))return 'Sign-in failed. Check your email, password, and Email/Password settings in Firebase.';
+    return 'The change could not be confirmed. Check your connection before trying again.';
+  }
+  async function write(button, task, success='Saved. Connected displays will update automatically.'){
+    if(!approved){status('Staff approval is required.');return false;}
+    if(!navigator.onLine){status('You are offline. Reconnect before saving.');return false;}
+    button.disabled=true;status('Saving…');
+    try {await task();status(success);return true;}catch(e){status(message(e));return false;}finally{button.disabled=false;}
+  }
+  function watch(ref,key,isList=false){
+    health.set(key,'connecting');
+    stops.push(onSnapshot(ref,{includeMetadataChanges:true},snapshot=>{
+      // Do not present unconfirmed local writes as published content.
+      if(snapshot.metadata.hasPendingWrites)return;
+      state[key]=isList?snapshot.docs.map(d=>({...d.data(),id:d.id})):(snapshot.exists()?snapshot.data():null);
+      health.set(key,snapshot.metadata.fromCache?'cache':'live');connection();
+      if(admin){renderLists();fillSettings(key);}else renderDisplay();
+    },error=>{health.set(key,'error');connection();status(message(error));}));
+  }
+  function beginListeners(){
+    endListeners();
+    for(const name of ['events','deadlines','notices'])watch(collection(db,name),name,true);
+    for(const name of ['feature','alert','display'])watch(doc(db,'settings',name),name);
+  }
+  function endListeners(){stops.forEach(stop=>stop());stops=[];health.clear();}
+  function clock(){const now=new Date();$('#date').textContent=now.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'long',month:'long',day:'numeric'});$('#clock').textContent=now.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit'});}
   function renderDisplay(){
-    if(admin)return;
-    const list=sorted();
-    $('#events').innerHTML=list.length?list.slice(0,4).map(e=>`<article class="event-row"><div class="event-time">${esc(formatTime(e.time).split(' ')[0])}<span>${esc(formatTime(e.time).split(' ')[1])} · ${esc(formatDate(e.date))}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.location)}</p><span class="small-tag">${esc(e.audience)}</span></div></article>`).join(''):'<p class="empty-state">Nothing on the board yet.<br>Check back for upcoming events.</p>';
-    $('.agenda-note').textContent=list.length>4?`${list.length-4} more example event${list.length-4===1?'':'s'} in the staff preview. Showing the first four.`:'Times shown in Washington, DC time.';
-    $('#feature-title').textContent=data.feature.title;
-    $('#feature-description').textContent=data.feature.description;
-    $('#feature-date').textContent=data.feature.date;
-    $('#feature-location').textContent=data.feature.location;
-    setView(data.view,false);
-  }
-  function setView(view,persist=true){
-    if(!['dashboard','event','alert'].includes(view))return;
-    data.view=view;
-    if(persist)save();
-    if(admin){document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));return;}
+    const events=upcoming(state.events), deadlines=upcoming(state.deadlines), notices=upcoming(state.notices);
+    $('#events').innerHTML=events.slice(0,4).map(e=>`<article class="event-row"><div class="event-time">${esc(timeLabel(e.time).split(' ')[0])}<span>${esc(timeLabel(e.time).split(' ')[1])} · ${esc(dateLabel(e.date))}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.location)}</p><span class="small-tag">${esc(e.audience)}</span></div></article>`).join('')||'<p class="empty-state">No upcoming events.</p>';
+    $('.agenda-note').textContent='Times shown in Washington, DC time.';
+    $('#deadlines').innerHTML=deadlines.slice(0,2).map(e=>`<div class="deadline-row"><span class="date-block"><strong>${esc(e.date.slice(8))}</strong>${esc(dateLabel(e.date).split(' ')[0].toUpperCase())}</span><div><h3>${esc(e.title)}</h3><p>${esc(e.description)}</p></div></div>`).join('')||'<p class="empty-state">No upcoming deadlines.</p>';
+    $('#notices').innerHTML=notices.slice(0,2).map(e=>`<div class="notice"><div><h3>${esc(e.title)}</h3><p>${esc(e.description)}</p></div></div>`).join('')||'<p class="empty-state">No current notices.</p>';
+    const feature=state.feature?.date>=dcDate()?state.feature:null;
+    $('#feature-title').textContent=feature?.title||'No featured event';
+    $('#feature-description').textContent=feature?.description||'';
+    $('#feature-date').textContent=feature?dateLabel(feature.date):'';
+    $('#feature-location').textContent=feature?.location||'';
+    const view=activeView(state.display,state.feature,state.alert);
     $('#dashboard').hidden=view!=='dashboard';$('#special-view').hidden=view==='dashboard';
     if(view!=='dashboard'){
-      const x=view==='event'?data.feature:data.alert;
+      const x=view==='event'?state.feature:state.alert;
       $('#special-view').className=view==='alert'?'alert-mode':'';
-      $('#special-view').innerHTML=`<p class="eyebrow">${view==='alert'?'COMMUNITY ANNOUNCEMENT':'COLLEGE & CAREERS · FEATURED EVENT'}</p><h1>${esc(x.title)}</h1><p class="special-copy">${esc(x.description)}</p><div class="special-meta">${view==='event'?`${esc(x.date)} &nbsp; / &nbsp; ${esc(x.location)}`:esc(x.detail)}</div><p class="special-demo">${view==='alert'?'DEMO ALERT · NOT A REAL SCHOOL NOTICE':'CONCEPT · SAMPLE EVENT'}</p>`;
+      $('#special-view').innerHTML=`<p class="eyebrow">${view==='alert'?'ANNOUNCEMENT':'FEATURED EVENT'}</p><h1>${esc(x.title)}</h1><p class="special-copy">${esc(x.description)}</p><div class="special-meta">${view==='event'?`${esc(dateLabel(x.date))} · ${esc(x.location)}`:esc(x.detail)}</div>`;
     }
+  }
+  function renderLists(){
+    for(const kind of ['events','deadlines','notices']){
+      const items=[...state[kind]].sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+      $(`#admin-${kind}`).innerHTML=items.map(e=>`<div class="admin-event"><div><h3>${esc(e.title)}</h3><p>${esc(dateLabel(e.date))}${e.time?' · '+esc(timeLabel(e.time)):''}${e.date<dcDate()?' · Past':''}</p></div><div>${kind==='events'?`<button data-edit="${esc(e.id)}">Edit</button>`:''}<button data-delete="${esc(e.id)}" data-kind="${kind}" aria-label="Remove ${esc(e.title)}">Remove</button></div></div>`).join('')||'<p class="empty-state">No items published.</p>';
+    }
+    $('#event-count').textContent=`${state.events.length} events`;
+    const view=activeView(state.display,state.feature,state.alert);
     document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
   }
-  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{setView(b.dataset.view);if(admin)status('Display view updated in this browser. Open the dashboard to see it.');}));
-  if(!admin){
-    function clock(){const now=new Date();$('#date').textContent=now.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'long',month:'long',day:'numeric'});$('#clock').textContent=now.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit'});}
-    clock();setInterval(clock,15000);renderDisplay();
-    $('#fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();}else if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();}else{status('Full screen is unavailable in this browser. Hide the browser toolbar on your iPad for a larger view.');}}catch{status('This browser could not enter full screen. You can still use the dashboard in this window.');}});
-    document.addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?'Exit full screen':'Full screen';});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')setView('dashboard');});
-  } else {
-    function renderAdmin(){
-      $('#admin-events').innerHTML=sorted().map(e=>`<div class="admin-event"><div><h3>${esc(e.title)}</h3><p>${esc(formatDate(e.date))} · ${esc(formatTime(e.time))} · ${esc(e.location)}</p><span class="small-tag">${esc(e.audience)}</span></div><button type="button" data-delete="${esc(e.id)}" aria-label="Remove ${esc(e.title)}">Remove</button></div>`).join('')||'<p class="empty-state">No events yet. Add one using the form.</p>';
-      $('#event-count').textContent=`${data.events.length} sample events`;
-      for(const prop of ['title','description','date','location'])$(`[name="feature-${prop}"]`).value=data.feature[prop];
-      for(const prop of ['title','description','detail'])$(`[name="alert-${prop}"]`).value=data.alert[prop];
-      setView(data.view,false);
-    }
-    $('#open-demo').addEventListener('click',()=>{$('#login-preview').hidden=true;$('#editor').hidden=false;renderAdmin();$('#editor-title').focus();});
-    $('#leave-demo').addEventListener('click',()=>{$('#editor').hidden=true;$('#login-preview').hidden=false;$('#open-demo').focus();status('');});
-    $('#event-form').addEventListener('submit',e=>{
-      e.preventDefault();const f=new FormData(e.target);
-      const event={id:Date.now().toString(36),title:f.get('title').trim(),date:f.get('date'),time:f.get('time'),location:f.get('location').trim(),audience:f.get('audience')};
-      if(!event.title||!event.location){status('Add an event title and location.');return;}
-      data.events.push(event);const saved=save();renderAdmin();e.target.reset();if(saved)status('Sample event added. The dashboard updates in other tabs in this browser.');
-    });
-    $('#admin-events').addEventListener('click',e=>{const b=e.target.closest('[data-delete]');if(!b)return;data.events=data.events.filter(x=>x.id!==b.dataset.delete);const saved=save();renderAdmin();if(saved)status('Sample event removed.');});
-    for(const section of ['feature','alert'])$(`#${section}-form`).addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target);for(const prop of Object.keys(data[section]))data[section][prop]=String(f.get(`${section}-${prop}`)||'').trim();const saved=save();if(saved)status(`${section==='feature'?'Featured event':'Demo alert'} saved in this browser.`);});
-    $('#reset').addEventListener('click',()=>{if(!window.confirm('Reset this prototype to its original sample events and display settings?'))return;data=clone();const saved=save();renderAdmin();if(saved)status('Original sample content restored.');});
+  function fillSettings(key){
+    if(!['feature','alert'].includes(key)||!state[key])return;
+    const form=$(`#${key}-form`);
+    // Preserve unsaved work when another staff member updates this document.
+    if(form.dataset.dirty==='true')return;
+    for(const [prop,value] of Object.entries(state[key])){const input=form.elements.namedItem(`${key}-${prop}`);if(input)input.value=value;}
   }
-  window.addEventListener('storage',e=>{if(e.key===key){data=migrateContent(read());if(!admin)renderDisplay();}});
-})();
+  if(!admin){
+    clock();beginListeners();renderDisplay();
+    setInterval(()=>{clock();renderDisplay();connection();},15000);
+    $('#fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else status('Full screen is not supported in this browser.');}catch{status('Full screen is unavailable in this browser.');}});
+    document.addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?'Exit full screen':'Full screen';});
+    const {startWeather}=await import('./weather.js');startWeather();
+  }else{
+    auth=getAuth(app);await setPersistence(auth,browserSessionPersistence);
+    $('#sign-in').disabled=false;$('#reset-password').disabled=false;
+    $('#login-form').addEventListener('submit',async e=>{e.preventDefault();const button=$('#sign-in');button.disabled=true;status('Signing in…');try{await signInWithEmailAndPassword(auth,$('#email').value.trim(),$('#password').value);$('#password').value='';}catch(error){status(message(error));}finally{button.disabled=false;}});
+    $('#reset-password').addEventListener('click',async()=>{if(!$('#email').value||!$('#email').checkValidity()){status('Enter your account email address first.');return;}$('#reset-password').disabled=true;try{await sendPasswordResetEmail(auth,$('#email').value.trim());status('If this account is registered, a password reset email will be sent.');}catch(e){status(message(e));}finally{$('#reset-password').disabled=false;}});
+    $('#sign-out').addEventListener('click',()=>signOut(auth).catch(e=>status(message(e))));
+    onAuthStateChanged(auth,user=>{
+      approved=false;endListeners();if(stopRole)stopRole();stopRole=null;
+      $('#editor').hidden=true;$('#login-preview').hidden=false;
+      if(!user){$('#connection').textContent='Signed out';status('');return;}
+      $('#connection').textContent='Checking staff access…';
+      stopRole=onSnapshot(doc(db,'staff',user.uid),{includeMetadataChanges:true},snap=>{
+        const allowed=!snap.metadata.fromCache&&snap.exists()&&snap.data().enabled===true;
+        if(allowed&&!approved){approved=true;$('#login-preview').hidden=true;$('#editor').hidden=false;status('');beginListeners();}
+        else if(!allowed){approved=false;endListeners();$('#editor').hidden=true;$('#login-preview').hidden=false;$('#connection').textContent='Staff access required';status(snap.metadata.fromCache?'Checking staff access…':'This account is not approved. Ask the project owner to enable staff access.');}
+      },e=>{approved=false;endListeners();$('#editor').hidden=true;$('#login-preview').hidden=false;status(message(e));});
+    });
+    $('#event-form').addEventListener('submit',async e=>{
+      e.preventDefault();const form=e.target,f=new FormData(form),item={};
+      for(const key of ['title','date','time','location','audience'])item[key]=String(f.get(key)).trim();
+      const ref=editingId?doc(db,'events',editingId):doc(collection(db,'events'));
+      if(await write(form.querySelector('[type=submit]'),()=>setDoc(ref,item))){form.reset();editingId=null;$('#cancel-edit').hidden=true;}
+    });
+    $('#cancel-edit').addEventListener('click',()=>{editingId=null;$('#event-form').reset();$('#cancel-edit').hidden=true;});
+    $('#editor').addEventListener('click',async e=>{
+      const edit=e.target.closest('[data-edit]');
+      if(edit){const item=state.events.find(x=>x.id===edit.dataset.edit);if(!item)return;editingId=item.id;for(const key of ['title','date','time','location','audience'])$('#event-form').elements.namedItem(key).value=item[key];$('#cancel-edit').hidden=false;$('#title').focus();}
+      const remove=e.target.closest('[data-delete]');
+      if(remove&&confirm('Remove this item from the public dashboard?'))await write(remove,()=>deleteDoc(doc(db,remove.dataset.kind,remove.dataset.delete)),'Item removed.');
+    });
+    for(const kind of ['deadline','notice'])$(`#${kind}-form`).addEventListener('submit',async e=>{e.preventDefault();const form=e.target,f=new FormData(form),item={};for(const key of ['title','date','description'])item[key]=String(f.get(key)).trim();if(await write(form.querySelector('button'),()=>setDoc(doc(collection(db,`${kind}s`)),item)))form.reset();});
+    for(const key of ['feature','alert']){
+      const form=$(`#${key}-form`);form.addEventListener('input',()=>{form.dataset.dirty='true';});
+      form.addEventListener('submit',async e=>{e.preventDefault();const f=new FormData(form),item={};for(const prop of key==='feature'?['title','description','date','location']:['title','description','detail'])item[prop]=String(f.get(`${key}-${prop}`)).trim();if(await write(form.querySelector('[type=submit]'),()=>setDoc(doc(db,'settings',key),item)))form.dataset.dirty='false';});
+    }
+    document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',async()=>{
+      const view=button.dataset.view;
+      if(view==='event'&&(!state.feature||state.feature.date<dcDate())){status('Save a featured event with a current or future date first.');return;}
+      if(view==='alert'&&!state.alert){status('Save an announcement first.');return;}
+      const expiresAt=view==='dashboard'?0:Date.now()+Number($('#takeover-hours').value)*3600000;
+      await write(button,()=>setDoc(doc(db,'settings','display'),{view,expiresAt}),'Display view updated.');
+    }));
+  }
+  window.addEventListener('online',connection);window.addEventListener('offline',connection);
+}

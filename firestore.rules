@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function staff() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.enabled == true;
+    }
+    function text(value, maximum) {
+      return value is string && value.size() > 0 && value.size() <= maximum;
+    }
+    function date(value) {
+      return value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+    function eventValid(d) {
+      return d.keys().hasAll(['title','date','time','location','audience'])
+        && d.keys().hasOnly(['title','date','time','location','audience'])
+        && text(d.title,65) && date(d.date) && text(d.location,65)
+        && d.time is string && d.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+        && d.audience in ['IB YEAR 1 & 2','IB YEAR 1','IB YEAR 2','CAS OPPORTUNITY'];
+    }
+    function itemValid(d, maximum) {
+      return d.keys().hasAll(['title','date','description'])
+        && d.keys().hasOnly(['title','date','description'])
+        && text(d.title,65) && date(d.date) && text(d.description,maximum);
+    }
+    function featureValid(d) {
+      return d.keys().hasAll(['title','description','date','location'])
+        && d.keys().hasOnly(['title','description','date','location'])
+        && text(d.title,65) && text(d.description,220)
+        && date(d.date) && text(d.location,80);
+    }
+    function alertValid(d) {
+      return d.keys().hasAll(['title','description','detail'])
+        && d.keys().hasOnly(['title','description','detail'])
+        && text(d.title,65) && text(d.description,280) && text(d.detail,120);
+    }
+    function displayValid(d) {
+      return d.keys().hasAll(['view','expiresAt'])
+        && d.keys().hasOnly(['view','expiresAt'])
+        && d.view in ['dashboard','event','alert']
+        && d.expiresAt is int && d.expiresAt >= 0;
+    }
+    // A user may check their own approval; nobody may approve themselves.
+    // Project owners manage these documents directly in the Firebase console.
+    match /staff/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+    // All records in these collections are public display content, not drafts.
+    match /events/{id} {
+      allow read: if true;
+      allow create, update: if staff() && eventValid(request.resource.data);
+      allow delete: if staff();
+    }
+    match /deadlines/{id} {
+      allow read: if true;
+      allow create, update: if staff() && itemValid(request.resource.data,160);
+      allow delete: if staff();
+    }
+    match /notices/{id} {
+      allow read: if true;
+      allow create, update: if staff() && itemValid(request.resource.data,220);
+      allow delete: if staff();
+    }
+    match /settings/{id} {
+      allow read: if id in ['feature','alert','display'];
+      allow create, update: if staff() && (
+        (id == 'feature' && featureValid(request.resource.data)) ||
+        (id == 'alert' && alertValid(request.resource.data)) ||
+        (id == 'display' && displayValid(request.resource.data))
+      );
+      allow delete: if staff() && id in ['feature','alert','display'];
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
