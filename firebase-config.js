@@ -2,7 +2,7 @@
 // Firebase Console → Project settings → General → Your apps → Web app → Config.
 // This is public web configuration. Never paste a service-account key here.
 export const firebaseConfig = {
-  apiKey: "AIzaSyBr4YJjrXVtyVRYh6EAsvWEkkXHcUg35mU",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "bisw-ib-dashboard.firebaseapp.com",
   projectId: "bisw-ib-dashboard",
   storageBucket: "bisw-ib-dashboard.firebasestorage.app",
