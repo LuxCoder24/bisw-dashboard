@@ -38,6 +38,30 @@ export function weatherIcon(period){
   return `<svg class="weather-symbol" data-weather="${name}" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${symbols[name]}</svg>`;
 }
 
+function temperatureC(period){
+  if(!Number.isFinite(period.temperature))return null;
+  if(period.temperatureUnit==='C')return period.temperature;
+  if(period.temperatureUnit==='F')return (period.temperature-32)*5/9;
+  return null;
+}
+
+export function forecastRange(periods,now=Date.now()){
+  const until=now+24*60*60*1000;
+  const hours=periods.map(period=>({start:Date.parse(period.startTime),end:Date.parse(period.endTime),c:temperatureC(period)}))
+    .filter(hour=>hour.end>now&&hour.start<until&&hour.end>hour.start)
+    .sort((a,b)=>a.start-b.start);
+  let coveredUntil=now;
+  const temperatures=[];
+  for(const hour of hours){
+    // Do not describe a partial or missing forecast as a full 24-hour range.
+    if(hour.start>coveredUntil||hour.c===null)return null;
+    temperatures.push(hour.c);
+    coveredUntil=Math.max(coveredUntil,hour.end);
+  }
+  if(coveredUntil<until||!temperatures.length)return null;
+  return {high:Math.round(Math.max(...temperatures)),low:Math.round(Math.min(...temperatures))};
+}
+
 export function startWeather(){
   const target=document.getElementById('weather-data');
   async function update(){
@@ -51,11 +75,16 @@ export function startWeather(){
       // The browser supplies its User-Agent. Resolve the grid afresh each refresh.
       const point=await get('https://api.weather.gov/points/38.9072,-77.0369');
       const forecast=await get(point.properties.forecastHourly);
-      const period=forecast.properties.periods.find(p=>new Date(p.endTime).getTime()>Date.now());
-      if(!period||!Number.isFinite(period.temperature))throw new Error('Weather unavailable');
-      const f=period.temperatureUnit==='F'?period.temperature:period.temperature*9/5+32;
-      const c=(f-32)*5/9;
-      target.innerHTML=`<div class="weather-main">${weatherIcon(period)}<strong>${Math.round(c)}°<span>C</span></strong><div>${esc(period.shortForecast)}<br><span>Wind ${esc(period.windSpeed)} ${esc(period.windDirection)}</span></div></div><p class="weather-summary">${Math.round(f)}°F · Forecast</p>`;
+      const periods=forecast.properties.periods;
+      const now=Date.now();
+      const period=periods.find(p=>Date.parse(p.startTime)<=now&&Date.parse(p.endTime)>now);
+      if(!period)throw new Error('Weather unavailable');
+      const c=temperatureC(period);
+      if(c===null)throw new Error('Weather unavailable');
+      const f=c*9/5+32;
+      const range=forecastRange(periods,now);
+      const rangeMarkup=range?`<div class="weather-range"><p>Next 24 hours</p><dl><div><dt>High</dt><dd>${range.high}°C</dd></div><div><dt>Low</dt><dd>${range.low}°C</dd></div></dl></div>`:'';
+      target.innerHTML=`<div class="weather-overview"><div class="weather-current"><div class="weather-main">${weatherIcon(period)}<strong class="weather-temperature">${Math.round(c)}<span class="weather-unit">°C</span></strong><div>${esc(period.shortForecast)}<br><span>Wind ${esc(period.windSpeed)} ${esc(period.windDirection)}</span></div></div><p class="weather-summary">${Math.round(f)}°F · Forecast</p></div>${rangeMarkup}</div>`;
     }catch{target.innerHTML='<p class="empty-state">Weather temporarily unavailable.</p>';}finally{clearTimeout(timer);}
   }
   update();setInterval(update,15*60*1000);
