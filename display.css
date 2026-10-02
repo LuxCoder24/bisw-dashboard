@@ -1,0 +1,112 @@
+/* BISW public display — landscape presentation. */
+html.dashboard-display { font-size:clamp(14px,1.18vw,46px); }
+.display-shell {
+  --panel: #0b405f;
+  --line: #ffffff18;
+  --muted: #b3cedb;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: radial-gradient(ellipse at 70% 0%, #4dc3cf12, transparent 55%), #003255;
+  min-width: 1024px;
+  padding: 1.15rem 1.5rem .7rem;
+  overflow: hidden;
+}
+.display-shell .display-timebar { padding: .15rem .2rem .65rem; }
+.display-shell .display-timebar .header-date { width:100%; justify-content:space-between; align-items:center; font-size:.9rem; font-weight:500; }
+.display-shell .display-timebar #clock { font-size:1.55rem; font-weight:650; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+.display-shell #dashboard { padding-top:.55rem; }
+.display-shell .dashboard-grid { grid-template-columns:1.12fr 1.2fr 1fr; grid-template-rows:auto; gap:1rem; }
+.display-shell .panel, .display-shell .feature-card {
+  border:1px solid #ffffff13;
+  border-radius:1rem;
+  box-shadow:0 .35rem 1.4rem #001a2d18, inset 0 1px 0 #ffffff05;
+  padding:1.1rem;
+}
+.display-shell .section-heading { margin-bottom:.65rem; }
+.display-shell .section-heading h2 { font-size:1.04rem; letter-spacing:-.025em; font-weight:650; }
+.display-shell .agenda { background:linear-gradient(145deg,#104967,#083b5c); }
+.display-shell .event-row { grid-template-columns:4.2rem minmax(0,1fr); gap:.65rem; padding:.55rem 0; align-items:start; }
+.display-shell .event-row:first-child { padding-top:.3rem; }
+.display-shell .event-row:last-child { border-bottom:0; padding-bottom:0; }
+.display-shell .event-time { font-size:1.1rem; font-weight:600; letter-spacing:-.025em; }
+.display-shell .event-time span { font-size:.59rem; line-height:1.55; font-weight:500; letter-spacing:.02em; }
+.display-shell .event-row h3 { font-size:1rem; font-weight:600; letter-spacing:-.02em; }
+.display-shell .event-row p { font-size:.76rem; margin-top:.25rem; }
+.display-shell .feature-card {
+  position:relative; isolation:isolate; overflow:hidden;
+  background:linear-gradient(125deg,#4dc3cf 0%,#74d8df 55%,#a4e8e7 100%);
+  border-color:#adf2ef55; color:#003255;
+}
+.display-shell .feature-card::before {
+  content:""; position:absolute; z-index:-1; width:19rem; height:19rem;
+  border:1px solid #00325512; border-radius:50%; right:-10rem; top:-6rem;
+  box-shadow:0 0 0 2.2rem #00325504,0 0 0 4.4rem #00325504,0 0 0 6.6rem #00325503;
+  pointer-events:none;
+}
+.display-shell .feature-top { align-items:center; }
+.display-shell .feature-top .tag { color:#003255; font-size:.59rem; letter-spacing:.09em; font-weight:750; padding:0; }
+.display-shell .feature-top .outline-label { color:#164d62; font-size:.52rem; letter-spacing:.03em; }
+.display-shell .feature-content { padding:1.6rem 0; }
+.display-shell .feature-content h2 { font-size:2.35rem; line-height:1.07; letter-spacing:-.055em; font-weight:650; text-wrap:balance; }
+.display-shell .feature-content>p:last-child { color:#16485d; font-size:.83rem; line-height:1.5; margin-top:.8rem; }
+.display-shell .feature-bottom { border-color:#00325523; padding-top:.7rem; }
+.display-shell .feature-bottom span { color:#16485d; font-size:.68rem; }
+.display-shell .feature-bottom strong { color:#003255; font-size:.78rem; font-weight:650; }
+.display-shell .weather { background:linear-gradient(160deg,#104b69,#083b5c); }
+.display-shell .weather-overview { gap:.75rem; margin:1rem 0 .65rem; }
+.display-shell .weather-symbol { width:3.3rem; height:3.3rem; filter:drop-shadow(0 0 .5rem #4dc3cf25); }
+.display-shell .weather-main { gap:.45rem; }
+.display-shell .weather-main>.weather-temperature { font-size:3.55rem; font-weight:550; letter-spacing:-.065em; }
+.display-shell .weather-main>.weather-temperature .weather-unit { font-size:.4em; margin-top:.15em; letter-spacing:-.04em; }
+.display-shell .weather-main>div { font-size:.97rem; font-weight:550; }
+.display-shell .weather-main>div span { font-size:.73rem; font-weight:400; }
+.display-shell .weather-overview .weather-range { padding-left:.75rem; }
+.display-shell .weather-range>p { font-size:.6rem; }
+.display-shell .weather-range dt { font-size:.7rem; }
+.display-shell .weather-overview .weather-range dd { font-size:1.35rem; font-weight:550; letter-spacing:-.04em; }
+.display-shell .weather-summary { font-size:.64rem; }
+.display-shell .weather-bottom { font-size:.58rem; padding-top:.65rem; opacity:.8; }
+.display-shell .weather-bottom a { text-decoration:none; }
+.display-shell #dashboard>.deadlines { margin-top:.85rem; padding:.65rem 1.1rem; gap:1.4rem; border:1px solid #ffffff10; border-radius:.7rem; background:#002b491f; box-shadow:none; }
+.display-shell #dashboard>.deadlines .section-heading h2 { font-size:.85rem; color:var(--muted); font-weight:500; }
+.display-shell #dashboard>.deadlines #deadlines { gap:2rem; }
+.display-shell .date-block { border:0; border-radius:.45rem; background:#4dc3cf12; min-width:2.8rem; padding:.28rem .45rem; font-size:.52rem; color:var(--accent); }
+.display-shell .date-block strong { font-size:1.35rem; font-weight:600; color:var(--accent); }
+.display-shell .deadline-row { gap:.75rem; }
+.display-shell .deadline-row h3 { font-size:.88rem; font-weight:600; }
+.display-shell .deadline-row p { font-size:.7rem; }
+.display-shell #dashboard>.buses { margin-top:.85rem; padding:1rem 1.1rem .75rem; background:linear-gradient(115deg,#062e4b,#073956); }
+.display-shell .bus-heading { margin-bottom:.85rem; }
+.display-shell .bus-heading h2 { gap:.55rem; }
+.display-shell .bus-symbol { width:1.25rem; height:1.25rem; }
+.display-shell .bus-heading .bus-live { font-size:.61rem; padding:.28rem .6rem; border-color:#4dc3cf25; background:#4dc3cf08; }
+.display-shell .bus-live[data-live=true]::before { box-shadow:0 0 0 .2rem #4dc3cf14; }
+.display-shell #bus-arrivals { gap:1.25rem; }
+.display-shell .bus-location+.bus-location { padding-left:1.25rem; }
+.display-shell .bus-location h3 { font-size:.9rem; letter-spacing:-.015em; font-weight:600; margin-bottom:.75rem; }
+.display-shell .bus-directions { gap:1.1rem; }
+.display-shell .bus-direction h4 { font-size:.63rem; margin-bottom:.35rem; letter-spacing:.015em; }
+.display-shell .bus-direction-arrow { display:inline-flex; width:1rem; height:1rem; align-items:center; justify-content:center; background:#4dc3cf10; border-radius:50%; font-size:.65rem; }
+.display-shell .bus-route { grid-template-columns:2.6rem minmax(0,1fr) auto; gap:.45rem; padding:.4rem 0; }
+.display-shell .bus-route+.bus-route { border-top:1px solid #ffffff07; }
+.display-shell .bus-route .bus-route-label { border:1px solid #4dc3cf30; background:#4dc3cf16; border-radius:.35rem; font-size:.8rem; padding:.25rem .35rem; font-weight:650; }
+.display-shell .bus-destination { font-size:.64rem; line-height:1.4; white-space:normal; overflow:visible; }
+.display-shell .bus-route p { gap:.65rem; font-size:.95rem; align-items:baseline; letter-spacing:-.025em; }
+.display-shell .bus-route p>span:first-child { font-size:1.4rem; font-weight:600; }
+.display-shell .bus-route small { font-size:.6rem; font-weight:400; margin-left:.12rem; letter-spacing:0; }
+.display-shell .bus-status { margin-top:.65rem; padding-top:.55rem; font-size:.57rem; color:#91b4c6; }
+.display-shell .display-footer { margin-top:.5rem; padding-top:.4rem; font-size:.56rem; color:#8eafc2; }
+.display-shell .display-footer button,.display-shell .display-footer a { font-size:.55rem; padding:.4rem .55rem; border-radius:.4rem; }
+.display-shell #special-view { border-radius:1rem; }
+@media (prefers-reduced-motion:no-preference) {
+  .display-shell .dashboard-grid>.panel, .display-shell .feature-card, .display-shell #dashboard>.deadlines, .display-shell #dashboard>.buses { animation:display-enter .7s cubic-bezier(.2,.7,.2,1) both; }
+  .display-shell .feature-card { animation-delay:.08s; }
+  .display-shell .weather { animation-delay:.16s; }
+  .display-shell #dashboard>.deadlines { animation-delay:.22s; }
+  .display-shell #dashboard>.buses { animation-delay:.28s; }
+  .display-shell .bus-live[data-live=true]::before { animation:live-breathe 3s ease-in-out infinite; }
+  .display-shell .weather-symbol { animation:weather-float 7s ease-in-out infinite; }
+  @keyframes display-enter { from { opacity:0; transform:translateY(.6rem); } to { opacity:1; transform:translateY(0); } }
+  @keyframes live-breathe { 0%,100% { box-shadow:0 0 0 .15rem #4dc3cf18; } 50% { box-shadow:0 0 0 .35rem #4dc3cf04; } }
+  @keyframes weather-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-.18rem); } }
+}
