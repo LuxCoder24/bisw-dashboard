@@ -47,11 +47,10 @@ export async function start(config) {
   function endListeners(){stops.forEach(stop=>stop());stops=[];health.clear();}
   function clock(){const now=new Date();$('#date').textContent=now.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'long',month:'long',day:'numeric'});$('#clock').textContent=now.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit'});}
   function renderDisplay(){
-    const events=upcoming(state.events), deadlines=upcoming(state.deadlines), notices=upcoming(state.notices);
+    const events=upcoming(state.events), deadlines=upcoming(state.deadlines);
     $('#events').innerHTML=events.slice(0,4).map(e=>`<article class="event-row"><div class="event-time">${esc(timeLabel(e.time).split(' ')[0])}<span>${esc(timeLabel(e.time).split(' ')[1])} · ${esc(dateLabel(e.date))}</span></div><div><h3>${esc(e.title)}</h3><p>${esc(e.location)}</p><span class="small-tag">${esc(e.audience)}</span></div></article>`).join('')||'<p class="empty-state">No upcoming events.</p>';
     $('.agenda-note').textContent='Times shown in Washington, DC time.';
     $('#deadlines').innerHTML=deadlines.slice(0,2).map(e=>`<div class="deadline-row"><span class="date-block"><strong>${esc(e.date.slice(8))}</strong>${esc(dateLabel(e.date).split(' ')[0].toUpperCase())}</span><div><h3>${esc(e.title)}</h3><p>${esc(e.description)}</p></div></div>`).join('')||'<p class="empty-state">No upcoming deadlines.</p>';
-    $('#notices').innerHTML=notices.slice(0,2).map(e=>`<div class="notice"><div><h3>${esc(e.title)}</h3><p>${esc(e.description)}</p></div></div>`).join('')||'<p class="empty-state">No current notices.</p>';
     const feature=state.feature?.date>=dcDate()?state.feature:null;
     $('#feature-title').textContent=feature?.title||'No featured event';
     $('#feature-description').textContent=feature?.description||'';
@@ -87,6 +86,7 @@ export async function start(config) {
     $('#fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else status('Full screen is not supported in this browser.');}catch{status('Full screen is unavailable in this browser.');}});
     document.addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?'Exit full screen':'Full screen';});
     const {startWeather}=await import('./weather.js');startWeather();
+    const {startTransit}=await import('./transit.js');startTransit();
   }else{
     auth=getAuth(app);await setPersistence(auth,browserSessionPersistence);
     $('#sign-in').disabled=false;$('#reset-password').disabled=false;
