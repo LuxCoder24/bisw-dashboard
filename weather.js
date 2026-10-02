@@ -1,4 +1,4 @@
-import {esc} from './helpers.js';
+import {esc,dcDate} from './helpers.js';
 
 // Drawn locally so the icons do not depend on another image service.
 const cloud = '<path d="M17 39h30a10 10 0 0 0 0-20h-1a14 14 0 0 0-27-3 12 12 0 0 0-2 23Z"/>';
@@ -62,6 +62,35 @@ export function forecastRange(periods,now=Date.now()){
   return {high:Math.round(Math.max(...temperatures)),low:Math.round(Math.min(...temperatures))};
 }
 
+export function dailyForecast(periods,now=Date.now()){
+  if(!Array.isArray(periods))return [];
+  const today=dcDate(new Date(now));
+  const ordered=[...periods].filter(p=>Number.isFinite(Date.parse(p.startTime))&&Date.parse(p.endTime)>Date.parse(p.startTime)).sort((a,b)=>Date.parse(a.startTime)-Date.parse(b.startTime));
+  const days=[],seen=new Set();
+  for(let i=0;i<ordered.length;i++){
+    const day=ordered[i],night=ordered[i+1],date=dcDate(new Date(day.startTime));
+    if(day.isDaytime!==true||date<=today||seen.has(date))continue;
+    // NWS supplies daytime highs and the following overnight lows as separate periods.
+    if(night?.isDaytime!==false||Date.parse(night.startTime)!==Date.parse(day.endTime))continue;
+    const high=temperatureC(day),low=temperatureC(night);
+    if(high===null||low===null)continue;
+    days.push({date,label:new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short'}).format(new Date(day.startTime)),high:Math.round(high),low:Math.round(low),condition:String(day.shortForecast||'Forecast'),period:day});
+    seen.add(date);if(days.length===5)break;
+  }
+  return days;
+}
+
+export function dailyForecastMarkup(days){
+  if(!days.length)return '<p class="weather-days-unavailable">Upcoming forecast temporarily unavailable.</p>';
+  const minimum=Math.min(...days.flatMap(day=>[day.low,day.high])),maximum=Math.max(...days.flatMap(day=>[day.low,day.high]));
+  const span=maximum-minimum;
+  return `<div class="weather-days-heading">Next ${days.length} ${days.length===1?'day':'days'} <span>°C</span></div><ol class="weather-day-list" aria-label="Upcoming daytime highs and overnight lows">${days.map(day=>{
+    const left=span?(Math.min(day.low,day.high)-minimum)/span*100:0;
+    const width=span?Math.abs(day.high-day.low)/span*100:100;
+    return `<li class="weather-day"><span class="weather-day-name">${esc(day.label)}</span><span class="weather-day-condition" role="img" aria-label="${esc(day.condition)}" title="${esc(day.condition)}">${weatherIcon(day.period)}</span><span class="weather-day-low" aria-label="Overnight low ${day.low} degrees Celsius">${day.low}°</span><span class="weather-day-track" aria-hidden="true"><span style="left:${left}%;width:${width}%"></span></span><strong class="weather-day-high" aria-label="Daytime high ${day.high} degrees Celsius">${day.high}°</strong></li>`;
+  }).join('')}</ol>`;
+}
+
 export function startWeather(){
   const target=document.getElementById('weather-data');
   async function update(){
@@ -74,6 +103,8 @@ export function startWeather(){
       }
       // The browser supplies its User-Agent. Resolve the grid afresh each refresh.
       const point=await get('https://api.weather.gov/points/38.9072,-77.0369');
+      // Start both requests together; a failed daily forecast must not erase current weather.
+      const dailyRequest=get(point.properties.forecast).then(data=>({data}),()=>({data:null}));
       const forecast=await get(point.properties.forecastHourly);
       const periods=forecast.properties.periods;
       const now=Date.now();
@@ -84,8 +115,10 @@ export function startWeather(){
       const f=c*9/5+32;
       const range=forecastRange(periods,now);
       const rangeMarkup=range?`<div class="weather-range"><p>Next 24 hours</p><dl><div><dt>High</dt><dd>${range.high}°C</dd></div><div><dt>Low</dt><dd>${range.low}°C</dd></div></dl></div>`:'';
-      target.innerHTML=`<div class="weather-overview"><div class="weather-current"><div class="weather-main">${weatherIcon(period)}<strong class="weather-temperature">${Math.round(c)}<span class="weather-unit">°C</span></strong><div>${esc(period.shortForecast)}<br><span>Wind ${esc(period.windSpeed)} ${esc(period.windDirection)}</span></div></div><p class="weather-summary">${Math.round(f)}°F · Forecast</p></div>${rangeMarkup}</div>`;
-    }catch{target.innerHTML='<p class="empty-state">Weather temporarily unavailable.</p>';}finally{clearTimeout(timer);}
+      target.innerHTML=`<div class="weather-overview"><div class="weather-current"><div class="weather-main">${weatherIcon(period)}<strong class="weather-temperature">${Math.round(c)}<span class="weather-unit">°C</span></strong><div>${esc(period.shortForecast)}<br><span>Wind ${esc(period.windSpeed)} ${esc(period.windDirection)}</span></div></div><p class="weather-summary">${Math.round(f)}°F · Forecast</p></div>${rangeMarkup}</div><div class="weather-days"><p class="weather-days-unavailable">Loading upcoming forecast…</p></div>`;
+      const daily=await dailyRequest;
+      target.querySelector('.weather-days').innerHTML=dailyForecastMarkup(dailyForecast(daily.data?.properties?.periods,Date.now()));
+    }catch{target.innerHTML='<p class="empty-state">Weather temporarily unavailable.</p>';}finally{clearTimeout(timer);controller.abort();}
   }
   update();setInterval(update,15*60*1000);
 }
