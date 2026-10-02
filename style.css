@@ -31,3 +31,29 @@
 /* Forecast symbols scale with the display text. */
 .weather-symbol{width:3.5rem;height:3.5rem;flex-shrink:0;color:var(--accent)}
 .weather-summary{font-size:.7rem;color:var(--muted)}
+
+/* Keep the degree symbol and unit together beside the temperature. */
+.weather-main>.weather-temperature{display:inline-flex;align-items:flex-start;gap:.08em;white-space:nowrap}
+.weather-main>.weather-temperature .weather-unit{font-size:.5em;line-height:1;margin:.1em 0 0;letter-spacing:0;color:var(--text)}
+.weather-range{margin:1rem 0}
+.weather-range>p{font-size:.7rem;color:var(--muted);margin-bottom:.45rem}
+.weather-range dl{display:flex;flex-wrap:wrap;gap:.6rem 1.8rem;margin:0}
+.weather-range dl>div{display:flex;align-items:baseline;gap:.5rem}
+.weather-range dt{font-size:.8rem;color:var(--muted)}
+.weather-range dd{margin:0;font-size:1.1rem;font-variant-numeric:tabular-nums}
+
+/* Balance current conditions with the high and low on wider cards. */
+.weather{container-type:inline-size}
+.weather-overview{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:1rem;margin:1rem 0}
+.weather-current{min-width:0}
+.weather-current .weather-main{margin:0 0 .8rem}
+.weather-current .weather-main>div{width:100%}
+.weather-overview .weather-range{margin:0;padding:.2rem 0 .2rem 1rem;border-left:1px solid var(--line)}
+.weather-overview .weather-range dl{flex-direction:column;gap:.75rem}
+.weather-overview .weather-range dl>div{display:block}
+.weather-overview .weather-range dd{font-size:1.45rem;margin-top:.15rem}
+@container(max-width:18rem){
+  .weather-overview{grid-template-columns:1fr}
+  .weather-overview .weather-range{padding:.8rem 0 0;border-left:0;border-top:1px solid var(--line)}
+  .weather-overview .weather-range dl{flex-direction:row;gap:2rem}
+}
