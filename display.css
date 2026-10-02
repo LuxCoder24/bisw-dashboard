@@ -11,6 +11,7 @@ html.dashboard-display { font-size:clamp(14px,1.18vw,46px); }
   padding: 1.15rem 1.5rem .7rem;
   overflow: hidden;
 }
+
 .display-shell .display-timebar { padding: .15rem .2rem .65rem; }
 .display-shell .display-timebar .header-date { width:100%; justify-content:space-between; align-items:center; font-size:.9rem; font-weight:500; }
 .display-shell .display-timebar #clock { font-size:1.55rem; font-weight:650; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
@@ -110,3 +111,44 @@ html.dashboard-display { font-size:clamp(14px,1.18vw,46px); }
   @keyframes live-breathe { 0%,100% { box-shadow:0 0 0 .15rem #4dc3cf18; } 50% { box-shadow:0 0 0 .35rem #4dc3cf04; } }
   @keyframes weather-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-.18rem); } }
 }
+
+/* Keep the featured event dominant, with a smaller rotating agenda beside it. */
+html.dashboard-display{font-size:clamp(12px,1.04vw,42px)}
+.display-shell .dashboard-grid{grid-template-columns:minmax(0,1.9fr) minmax(0,1fr) minmax(0,.85fr)}
+.display-shell .dashboard-sidebar{display:flex;flex-direction:column;gap:.85rem;min-width:0}
+.display-shell .dashboard-sidebar>.agenda,.display-shell .dashboard-sidebar>.weather{grid-area:auto;min-width:0}
+.display-shell .dashboard-grid>.feature-card{min-height:24rem;padding:1.5rem}
+.display-shell .feature-card .feature-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding:1.25rem 0;min-width:0}
+.display-shell .feature-card .feature-content h2{font-size:2.8rem;line-height:1.08;letter-spacing:-.045em}
+.display-shell .feature-card .feature-content>p{font-size:1.12rem;line-height:1.5;margin-top:1rem;white-space:pre-line;overflow-wrap:anywhere}
+.display-shell .feature-card.has-image .feature-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:auto auto;align-content:center;align-items:center;gap:.8rem 1.5rem}
+.display-shell .feature-card.has-image .feature-content h2{grid-column:1;grid-row:1;align-self:end;font-size:2.25rem}
+.display-shell .feature-card.has-image .feature-content>p{grid-column:1;grid-row:2;align-self:start;margin-top:0;font-size:1rem}
+.display-shell #feature-image{grid-column:2;grid-row:1/3;min-width:0}
+.display-shell .feature-image{display:block;width:100%;height:17rem;object-fit:contain;background:#00325512;border-radius:.65rem}
+.display-shell .feature-card .feature-bottom{padding-top:.8rem}
+.display-shell .feature-card .feature-bottom span{font-size:.9rem}
+.display-shell .feature-card .feature-bottom strong{font-size:1.05rem}
+.display-shell .agenda{min-height:15rem;flex:1}
+.display-shell #events{flex:1;min-width:0}
+.display-shell .event-slide{min-width:0}
+.display-shell .event-meta{display:flex;gap:.5rem;align-items:center;margin-bottom:.55rem;font-size:.7rem;color:var(--accent);font-weight:650}
+.display-shell .event-meta span+span{padding-left:.5rem;border-left:1px solid var(--line)}
+.display-shell .event-slide h3{font-size:1.23rem;line-height:1.15;letter-spacing:-.025em;text-wrap:balance;overflow-wrap:anywhere}
+.display-shell .event-location{font-size:.76rem;margin-top:.4rem;color:var(--muted)}
+.display-shell .event-description{font-size:.81rem;line-height:1.45;margin:.65rem 0;white-space:pre-line;overflow-wrap:anywhere}
+.display-shell .event-slide .small-tag{display:block;margin-top:.6rem;font-size:.58rem}
+.display-shell .event-slide.has-image{display:grid;grid-template-columns:minmax(0,1fr) 32%;align-items:center;gap:.7rem}
+.display-shell .event-text{min-width:0}
+.display-shell .event-image{width:100%;height:9rem;object-fit:contain;background:#00253e;border:1px solid #ffffff12;border-radius:.45rem}
+.display-shell .event-position{font-size:.61rem;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:.55rem;margin-top:.6rem;border-top:1px solid var(--line)}
+.display-shell .agenda .section-heading h2,.display-shell .weather .section-heading h2{font-size:.95rem}
+.display-shell .weather-overview{margin:.4rem 0}
+.display-shell .weather-main>.weather-temperature{font-size:2.6rem}
+.display-shell .weather-symbol{width:2.4rem;height:2.4rem}
+.display-shell .weather-bottom{padding-top:.35rem}
+.display-shell .notice-board{padding:.8rem 1.1rem}
+.display-shell .notice-board .notice{padding:0}
+.display-shell .deadline-row>div{min-width:0;overflow-wrap:anywhere}
+.display-shell #dashboard>.deadlines #deadlines{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.3rem}
+@media(prefers-reduced-motion:no-preference){.event-slide{animation:event-reveal .35s ease-out}@keyframes event-reveal{from{opacity:0}to{opacity:1}}}
