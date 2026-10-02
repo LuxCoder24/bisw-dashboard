@@ -27,3 +27,7 @@
 .display-timebar #clock{color:var(--text);font-size:1.15rem}
 .display-timebar .live-clock span:last-child{font-size:.65rem;letter-spacing:.02rem}
 @media(max-width:650px){.display-timebar .header-date{flex-wrap:wrap;gap:.35rem .8rem;font-size:.8rem}.display-timebar .live-clock{flex-direction:row;align-items:baseline}.display-timebar .live-clock span:last-child{font-size:11px}}
+
+/* Forecast symbols scale with the display text. */
+.weather-symbol{width:3.5rem;height:3.5rem;flex-shrink:0;color:var(--accent)}
+.weather-summary{font-size:.7rem;color:var(--muted)}
