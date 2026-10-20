@@ -2,7 +2,7 @@ import { featuredEvent, isFeatured } from './event-feature.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, setPersistence, browserSessionPersistence, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { esc, dcDate, dateLabel, timeLabel, upcoming, activeView, hasContent, isCurrent, contentOrder } from './helpers.js';
+import { esc, dcDate, dateLabel, timeLabel, upcoming, activeView, hasContent, isCurrent, contentOrder } from './helpers.js?v=20261020-2';
 import { attachImageEditor, imageMarkup } from './images.js';
 import { createEventCarousel } from './event-carousel.js';
 

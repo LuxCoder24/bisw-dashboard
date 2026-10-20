@@ -3,7 +3,7 @@ try {
   if (['apiKey','authDomain','projectId','appId'].some(k => !firebaseConfig[k] || firebaseConfig[k].includes('PASTE_'))) {
     throw new Error('Complete firebase-config.js using your Firebase web app configuration, then reload.');
   }
-  const { start } = await import('./app.js');
+  const { start } = await import('./app.js?v=20261020-2');
   await start(firebaseConfig);
 } catch (error) {
   document.getElementById('connection').textContent = 'Setup incomplete';
