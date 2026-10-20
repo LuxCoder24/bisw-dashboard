@@ -5,7 +5,7 @@ export const validImage = value => typeof value === 'string' && value.length <= 
 export function imageMarkup(item, className = 'content-image') {
   if (!validImage(item?.image)) return '';
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  return `<img class="${className}" src="${item.image}" alt="${escape(item.imageAlt || item.title)}" decoding="async">`;
+  return `<img class="${className}" src="${item.image}" alt="${escape(item.imageAlt || item.title || 'Dashboard picture')}" decoding="async">`;
 }
 
 export async function prepareImage(file) {
@@ -44,7 +44,9 @@ export function attachImageEditor(form) {
   const field = document.createElement('fieldset');
   field.className = 'image-editor';
   field.innerHTML = `<legend>Picture (optional)</legend><label for="${form.id}-picture">Upload a picture</label><input id="${form.id}-picture" type="file" accept="image/jpeg,image/png,image/webp"><p class="image-help">JPG, PNG, or WebP · up to 10 MB. Pictures are resized automatically.</p><img class="image-preview" alt="Picture preview" hidden><button type="button" class="remove-image" hidden>Remove picture</button><label for="${form.id}-image-alt">Picture description</label><input id="${form.id}-image-alt" maxlength="120" placeholder="A short description for people using a screen reader"><p class="image-status" role="status" aria-live="polite"></p>`;
-  form.insertBefore(field, form.querySelector('button[type="submit"], button:not([type])'));
+  let anchor = form.querySelector('button[type="submit"], button:not([type])');
+  while (anchor && anchor.parentElement !== form) anchor = anchor.parentElement;
+  form.insertBefore(field, anchor);
   const input = field.querySelector('[type="file"]'), preview = field.querySelector('img');
   const remove = field.querySelector('button'), alt = field.querySelector('[maxlength]'), message = field.querySelector('[role="status"]');
   let picture = '', busy = false, failure = '', revision = 0;
