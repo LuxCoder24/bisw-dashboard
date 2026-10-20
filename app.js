@@ -169,7 +169,9 @@ export async function start(config) {
         const list=edit.dataset.kind,item=state[list].find(x=>x.id===edit.dataset.edit);if(!item)return;
         const kind=list.slice(0,-1),form=$(`#${kind}-form`);editing[list]=item.id;form.reset();
         for(const key of kind==='event'?['title','date','time','location','audience','description']:['title','date','description'])form.elements.namedItem(key).value=item[key]||'';
-        imageEditors.get(form).set(item);$(`#cancel-${kind}-edit`).hidden=false;form.querySelector('input').focus();
+        imageEditors.get(form).set(item);$(`#cancel-${kind}-edit`).hidden=false;
+        form.dispatchEvent(new Event('staff:edit'));
+        form.querySelector('input').focus();
       }
       const remove=e.target.closest('[data-delete]');
       if(remove&&confirm('Remove this item from the public dashboard?')){

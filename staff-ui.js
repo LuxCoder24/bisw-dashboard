@@ -13,15 +13,14 @@ for (const [kind, name] of Object.entries(names)) {
   const save = form.querySelector('[type="submit"]');
   const restore = () => { heading.textContent = `Add ${name}`; save.textContent = `Save ${kind}`; };
   form.addEventListener('reset', restore);
-  editor.addEventListener('click', event => {
-    const button = event.target.closest(`[data-edit][data-kind="${kind}s"]`);
-    if (!button) return;
-    // app.js resets and fills the existing form in this same click event.
-    queueMicrotask(() => {
-      showSection(`${kind}s`);
-      heading.textContent = `Edit ${kind}`;
-      save.textContent = 'Save changes';
-    });
+  form.addEventListener('staff:edit', () => {
+    showSection(`${kind}s`);
+    heading.textContent = `Edit ${kind}`;
+    save.textContent = 'Save changes';
+    if(kind === 'event') {
+      openComposer();
+      document.querySelector('#event-extras').open = true;
+    }
   });
 }
 
@@ -44,12 +43,10 @@ eventForm.addEventListener('reset', () => {
   eventDirty = false;
   const feedback = eventForm.querySelector('.form-status');
   if(feedback) feedback.textContent = '';
-  queueMicrotask(() => {
-    composer.hidden = true;
+  composer.hidden = true;
     addEvent.setAttribute('aria-expanded','false');
     document.querySelector('#event-extras').open = false;
-    if(!editor.hidden) addEvent.focus();
-  });
+  if(!editor.hidden) addEvent.focus();
 });
 addEvent.addEventListener('click', openComposer);
 cancelEvent.addEventListener('click', event => {
@@ -59,10 +56,6 @@ cancelEvent.addEventListener('click', event => {
   }
 }, true);
 editor.addEventListener('click', event => {
-  if(event.target.closest('[data-edit][data-kind="events"]')) queueMicrotask(() => {
-    openComposer();
-    document.querySelector('#event-extras').open = true;
-  });
   if(event.target.closest('[data-go-events]')) {
     showSection('events');
     document.querySelector('#heading-events').focus();
