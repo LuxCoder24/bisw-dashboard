@@ -185,7 +185,7 @@ export async function start(config) {
     setInterval(()=>{clock();renderDisplay();connection();},15000);
     $('#fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else status('Full screen is not supported in this browser.');}catch{status('Full screen is unavailable in this browser.');}});
     document.addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?'Exit full screen':'Full screen';});
-    const {startWeather}=await import('./weather.js');startWeather();
+    const {startWeather}=await import('./weather.js?v=20261103-4');startWeather();
     const {startTransit}=await import('./transit.js?v=20261103-2');startTransit();
   }else{
     setupCommunityEditor();

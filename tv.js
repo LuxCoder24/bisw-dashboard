@@ -58,6 +58,7 @@
     text('clock',(d.getUTCHours()%12||12)+':'+pad(d.getUTCMinutes())+' '+(d.getUTCHours()<12?'AM':'PM'));
   }
   function dateLabel(date) { if(!date)return '';var p=date.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(p[1])-1]+' '+Number(p[2]); }
+  function deadlineBadge(date) { if(!date)return '';var p=date.split('-');return '<div class="date-block"><strong>'+esc(pad(Number(p[2])))+'</strong>'+esc(['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][Number(p[1])-1])+'</div>'; }
   function timeLabel(time) { if(!time)return '';var p=time.split(':'),h=Number(p[0]);return (h%12||12)+':'+p[1]+' '+(h<12?'AM':'PM'); }
   function current(item) { return item&&(!item.date||item.date>=today()); }
   function picture(item,klass) { return item&&typeof item.image==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(item.image)?'<img class="'+klass+'" src="'+item.image+'" alt="'+esc(item.imageAlt||item.title||'Event picture')+'">':''; }
@@ -87,7 +88,7 @@
     var markup=picture(feature,'feature-image');el('feature-image').innerHTML=markup;el('feature-image').hidden=!markup;
     var card=document.querySelector('.feature-card');card.className='feature-card'+(markup?' has-image':'')+(markup&& !feature.title&&!feature.description?' image-only':'');
     var nextPages=eventPages(upcoming(state.events));if(JSON.stringify(nextPages)!==JSON.stringify(pages)){pages=nextPages;slide=0;}paintEvents();
-    el('deadlines').innerHTML=upcoming(state.deadlines).map(function(item){return '<div class="deadline-row">'+picture(item,'deadline-image')+'<div><h3>'+esc(item.title)+'</h3><p>'+esc([dateLabel(item.date),item.description].filter(Boolean).join(' · '))+'</p></div></div>';}).join('')||'<p class="empty-state">No upcoming deadlines.</p>';
+    el('deadlines').innerHTML=upcoming(state.deadlines).map(function(item){return '<div class="deadline-row">'+deadlineBadge(item.date)+picture(item,'deadline-image')+'<div class="deadline-copy"><h3>'+esc(item.title)+'</h3><p>'+esc(item.description||'')+'</p></div></div>';}).join('')||'<p class="empty-state">No upcoming deadlines.</p>';
     window.BISWCommunity.update(state.notices,today(),fitDisplay);
     var notices=upcoming(state.notices.filter(function(item){return !window.BISWCommunity.kind(item);}));el('notice-board').hidden=!notices.length;
     el('notices').innerHTML=notices.map(function(item){return '<article class="notice">'+picture(item,'notice-image')+'<h3>'+esc(item.title)+'</h3><p>'+esc(item.description)+'</p></article>';}).join('');
@@ -173,7 +174,7 @@ var symbols = {
     var minimum=Math.min.apply(null,temperatures),maximum=Math.max.apply(null,temperatures),span=maximum-minimum;
     return '<div class="weather-days-heading">Next '+days.length+' days <span>°C</span></div><ol class="weather-day-list" aria-label="Upcoming daytime highs and overnight lows">'+days.map(function(day){
       var left=span?(Math.min(day.low,day.high)-minimum)/span*100:0,width=span?Math.abs(day.high-day.low)/span*100:100;
-      return '<li class="weather-day"><span class="weather-day-name">'+day.label+'</span><span class="weather-day-condition" role="img" aria-label="'+esc(day.period.shortForecast||'Forecast')+'">'+weatherIcon(day.period)+'</span><span class="weather-day-low" aria-label="Overnight low '+day.low+' degrees Celsius">'+day.low+'°</span><span class="weather-day-bar"><span class="weather-day-track" aria-hidden="true"><span style="left:'+left+'%;width:'+width+'%"></span></span></span><strong class="weather-day-high" aria-label="Daytime high '+day.high+' degrees Celsius">'+day.high+'°</strong></li>';
+      return '<li class="weather-day"><span class="weather-day-name">'+day.label+'</span><span class="weather-day-condition" role="img" aria-label="'+esc(day.period.shortForecast||'Forecast')+'">'+weatherIcon(day.period)+'</span><span class="weather-day-low" aria-label="Overnight low '+day.low+' degrees Celsius">'+day.low+'°</span><span class="weather-day-bar"><span class="weather-day-track" aria-hidden="true"><span style="left:'+left+'%;width:'+width+'%;background:'+window.BISWTemperatureScale.gradient(day.low,day.high)+'"></span></span></span><strong class="weather-day-high" aria-label="Daytime high '+day.high+' degrees Celsius">'+day.high+'°</strong></li>';
     }).join('')+'</ol>';
   }
   function weather() {

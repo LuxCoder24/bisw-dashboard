@@ -1,3 +1,4 @@
+import './temperature-scale.js?v=20261103-4';
 import {esc,dcDate} from './helpers.js';
 
 // Drawn locally so the icons do not depend on another image service.
@@ -87,7 +88,7 @@ export function dailyForecastMarkup(days){
   return `<div class="weather-days-heading">Next ${days.length} ${days.length===1?'day':'days'} <span>°C</span></div><ol class="weather-day-list" aria-label="Upcoming daytime highs and overnight lows">${days.map(day=>{
     const left=span?(Math.min(day.low,day.high)-minimum)/span*100:0;
     const width=span?Math.abs(day.high-day.low)/span*100:100;
-    return `<li class="weather-day"><span class="weather-day-name">${esc(day.label)}</span><span class="weather-day-condition" role="img" aria-label="${esc(day.condition)}" title="${esc(day.condition)}">${weatherIcon(day.period)}</span><span class="weather-day-low" aria-label="Overnight low ${day.low} degrees Celsius">${day.low}°</span><span class="weather-day-track" aria-hidden="true"><span style="left:${left}%;width:${width}%"></span></span><strong class="weather-day-high" aria-label="Daytime high ${day.high} degrees Celsius">${day.high}°</strong></li>`;
+    return `<li class="weather-day"><span class="weather-day-name">${esc(day.label)}</span><span class="weather-day-condition" role="img" aria-label="${esc(day.condition)}" title="${esc(day.condition)}">${weatherIcon(day.period)}</span><span class="weather-day-low" aria-label="Overnight low ${day.low} degrees Celsius">${day.low}°</span><span class="weather-day-track" aria-hidden="true"><span style="left:${left}%;width:${width}%;background:${window.BISWTemperatureScale.gradient(day.low,day.high)}"></span></span><strong class="weather-day-high" aria-label="Daytime high ${day.high} degrees Celsius">${day.high}°</strong></li>`;
   }).join('')}</ol>`;
 }
 
