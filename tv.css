@@ -1,69 +1,135 @@
-/* Conservative layout for built-in TV browsers. */
-html.dashboard-display{font-size:18px;color-scheme:dark}
-body{background:#003255;color:#f4f7fa}
-[hidden]{display:none!important}
-.display-shell{display:block;min-width:1000px;min-height:100vh;padding:20px 24px;box-sizing:border-box}
-.display-shell .display-timebar{display:block;text-align:right;height:28px}
-.display-timebar .header-date,.display-timebar .live-clock{display:inline-block}
-.display-timebar #clock{margin-left:20px}
-.display-shell #dashboard{padding-top:12px}
-.display-shell .dashboard-grid{display:flex;align-items:stretch}
-.display-shell .dashboard-grid>.feature-card{width:43%;flex:none;margin-right:1%;min-height:390px;box-sizing:border-box}
-.display-shell .dashboard-grid>.agenda{width:28%;flex:none;margin-right:1%;min-height:390px;box-sizing:border-box}
-.display-shell .dashboard-grid>.weather{width:27%;flex:none;min-height:390px;box-sizing:border-box}
-.display-shell .feature-content h2{font-size:2rem}
-.display-shell .feature-content>p{font-size:1rem;line-height:1.45}
-.display-shell .feature-card.has-image .feature-content{display:block}
-.display-shell .feature-image{height:150px;width:100%;object-fit:contain}
-.display-shell .event-slide.has-image{display:block}
-.display-shell .event-image{height:140px;width:100%;object-fit:contain}
-.display-shell #dashboard>.deadlines{display:flex;margin-top:16px;padding:14px}
-.display-shell #dashboard>.deadlines #deadlines{display:flex;flex-wrap:wrap;margin-left:20px}
-.deadline-row{margin-right:24px}
-.display-shell #bus-arrivals{display:flex}
-.display-shell .bus-location{width:50%;box-sizing:border-box}
-.display-shell .bus-directions{display:flex}
-.display-shell .bus-direction{width:50%;box-sizing:border-box;padding-right:12px}
-.display-shell .bus-route{display:flex;flex-wrap:wrap;align-items:center}
-.display-shell .bus-route .bus-route-label{margin-right:8px}
-.display-shell .bus-destination{flex:1}
-.display-shell .bus-route p{margin-left:8px}
-.display-shell .bus-route p span{margin-right:8px}
-.tv-weather-day{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #32627b;font-size:.85rem}
-.display-shell .weather-main{display:block;margin:18px 0}
-.display-shell .weather-temperature{font-size:3rem}
-.display-shell .weather-main>div{font-size:.9rem;margin-top:12px}
-.display-shell .display-footer{display:flex;justify-content:space-between;margin-top:14px}
-.display-footer a,.display-footer button{margin-left:12px}
-#special-view.has-image{display:flex;align-items:center}
-#special-view.has-image .special-text{width:55%}
-#special-view.has-image .special-image{width:43%;margin-left:2%;object-fit:contain}
-@media(min-width:1700px){html.dashboard-display{font-size:24px}.display-shell .dashboard-grid>.feature-card,.display-shell .dashboard-grid>.agenda,.display-shell .dashboard-grid>.weather{min-height:510px}.display-shell .feature-image{height:230px}.display-shell .event-image{height:190px}}
-/* Keep the entire board visible at the TV's landscape viewport. */
-html.dashboard-display{font-size:16px}
-.display-shell .display-timebar{height:32px;padding:0}
-.display-shell .display-timebar .header-date{display:flex;justify-content:space-between;align-items:center;width:100%}
-.display-shell .display-timebar .live-clock{display:block}
-.display-shell .dashboard-grid{gap:0}
-.display-shell .dashboard-grid>.feature-card,.display-shell .dashboard-grid>.agenda,.display-shell .dashboard-grid>.weather{min-height:0;height:52vh;padding:16px}
-.display-shell .feature-card.has-image .feature-content{padding:8px 0}
-.display-shell .feature-card.has-image .feature-content h2,.display-shell .feature-content h2{font-size:1.65rem;line-height:1.1}
-.display-shell .feature-card.has-image .feature-content>p,.display-shell .feature-content>p{font-size:.85rem;line-height:1.35;margin:8px 0}
-.display-shell .feature-image{height:16vh;width:100%}
-.display-shell .feature-card .feature-bottom{padding-top:8px}
-.display-shell .feature-card .feature-bottom strong{font-size:.95rem}
-.display-shell .event-slide h3{font-size:1.15rem}
-.display-shell .event-description{font-size:.8rem;line-height:1.35}
-.display-shell .event-image{height:14vh}
-.display-shell .weather-main{margin:10px 0}
-.display-shell .weather-main>div{margin-top:6px}
-.display-shell .weather-days{padding-top:4px;margin-top:8px}
-.tv-weather-day{padding:3px 0}
-.display-shell #dashboard>.deadlines{margin-top:10px;padding:8px 12px}
-.display-shell .empty-state{padding:6px 0;font-size:.85rem}
-.display-shell #dashboard>.buses{margin-top:10px;padding:12px}
-.display-shell .bus-route{padding:3px 0;font-size:.8rem}
-.display-shell .bus-location h3{font-size:.85rem}
-.display-shell .bus-direction h4{font-size:.75rem}
-.display-shell .display-footer{margin-top:8px;padding-top:0;font-size:.7rem}
-@media(min-width:1700px){html.dashboard-display{font-size:22px}}
+/* TV presentation: the desktop artwork with layout primitives supported by older TV browsers.
+   Explicit colors, margins and table rows avoid relying on flex gap, CSS grid or container queries. */
+html.dashboard-display { font-size:16px; color-scheme:dark; }
+body { background:#003255; color:#f4f7fa; }
+[hidden] { display:none!important; }
+.display-shell { display:block; min-width:0; min-height:100vh; padding:1.1rem 1.4rem .65rem; box-sizing:border-box; overflow:hidden; }
+.display-shell .display-timebar { display:block; height:2.25rem; padding:0 .15rem .6rem; }
+.display-shell .display-timebar .header-date { display:flex; justify-content:space-between; align-items:center; width:100%; font-size:.95rem; }
+.display-shell .display-timebar .live-clock { display:block; margin:0; }
+.display-shell .display-timebar #clock { font-size:1.55rem; color:#f4f7fa; letter-spacing:-.035em; }
+.display-shell #dashboard { padding-top:.5rem; }
+.display-shell .dashboard-grid { display:flex; flex-direction:row; align-items:stretch; gap:0; }
+.display-shell .dashboard-grid>.feature-card { width:44%; margin-right:1.2%; }
+.display-shell .dashboard-grid>.agenda { width:26%; margin-right:1.2%; }
+.display-shell .dashboard-grid>.weather { width:27.6%; }
+.display-shell .dashboard-grid>.feature-card,
+.display-shell .dashboard-grid>.agenda,
+.display-shell .dashboard-grid>.weather { flex:none; min-height:27rem; height:auto; padding:1.3rem; box-sizing:border-box; }
+.display-shell .panel { background:#0b405f; border:1px solid #ffffff18; border-radius:1rem; }
+.display-shell .agenda { background:linear-gradient(145deg,#104967,#083b5c); }
+.display-shell .weather { background:linear-gradient(160deg,#104b69,#083b5c); }
+.display-shell .section-heading { margin-bottom:.65rem; }
+.display-shell .section-heading h2,
+.display-shell .agenda .section-heading h2,
+.display-shell .weather .section-heading h2 { font-size:1.05rem; }
+.display-shell .feature-card { border:1px solid #adf2ef55; border-top-width:1px; background:linear-gradient(125deg,#4dc3cf,#74d8df 55%,#a4e8e7); color:#003255; }
+.display-shell .feature-top .tag { font-size:.66rem; color:#003255; }
+.display-shell .feature-top .outline-label { font-size:.58rem; color:#164d62; }
+.display-shell .feature-card .feature-content { display:flex; flex-direction:column; justify-content:center; padding:1.4rem 0; }
+.display-shell .feature-content h2 { font-size:2.85rem; line-height:1.08; letter-spacing:-.045em; }
+.display-shell .feature-content>p { font-size:1.05rem; line-height:1.5; margin-top:1rem; color:#16485d; }
+.display-shell .feature-content>p:empty,
+.display-shell .feature-content h2:empty { display:none; }
+.display-shell .feature-card.has-image .feature-content { display:block; }
+.display-shell .feature-card.has-image .feature-content h2 { font-size:2rem; }
+.display-shell .feature-card.has-image .feature-content>p { font-size:.9rem; margin-top:.6rem; }
+.display-shell .feature-card.has-image #feature-image { margin-top:.9rem; }
+.display-shell .feature-image { display:block; width:100%; height:12rem; object-fit:contain; border-radius:.65rem; background:#00325512; }
+.display-shell .feature-card.image-only .feature-content { display:flex; padding:.75rem 0; }
+.display-shell .feature-card.image-only #feature-image { margin:0; }
+.display-shell .feature-card.image-only .feature-image { height:21rem; background:transparent; }
+.display-shell .feature-card .feature-bottom { padding-top:.7rem; border-color:#00325523; }
+.display-shell .feature-card .feature-bottom span { font-size:.85rem; color:#16485d; }
+.display-shell .feature-card .feature-bottom strong { font-size:1rem; color:#003255; }
+.display-shell .empty-state { padding:.65rem 0; font-size:.95rem; color:#b3cedb; }
+.display-shell .event-meta { display:block; font-size:.8rem; color:#74d8df; margin-bottom:.65rem; }
+.display-shell .event-slide h3 { font-size:1.5rem; line-height:1.15; }
+.display-shell .event-location { font-size:.85rem; color:#b3cedb; margin-top:.5rem; }
+.display-shell .event-description { font-size:.93rem; line-height:1.5; margin:.8rem 0; }
+.display-shell .event-slide .small-tag { font-size:.64rem; }
+.display-shell .event-slide.has-image { display:block; }
+.display-shell .event-image { display:block; width:100%; height:10rem; margin-top:.85rem; object-fit:contain; border-radius:.6rem; background:#00253e; }
+.display-shell .event-position { margin-top:auto; padding-top:.75rem; font-size:.72rem; color:#b3cedb; }
+/* Current conditions and forecast range sit together, like the desktop weather card. */
+.display-shell .weather-overview { display:table; width:100%; margin:.4rem 0 .6rem; table-layout:fixed; }
+.display-shell .weather-current { display:table-cell; vertical-align:top; width:70%; padding-right:.6rem; }
+.display-shell .weather-main { display:block; margin:0; }
+.display-shell .weather-symbol { display:inline-block; vertical-align:middle; width:3.25rem; height:3.25rem; color:#74d8df; animation:none; }
+.display-shell .weather-symbol[data-weather=sun] { color:#f5ce70; }
+.display-shell .weather-main>.weather-temperature { display:inline-block; vertical-align:middle; margin-left:.35rem; font-size:3.5rem; font-weight:550; line-height:1; letter-spacing:-.065em; white-space:nowrap; }
+.display-shell .weather-main>.weather-temperature .weather-unit { display:inline-block; vertical-align:top; margin:.2em 0 0 .1em; font-size:.38em; line-height:1; letter-spacing:0; color:#f4f7fa; }
+.display-shell .weather-main>div { width:auto; font-size:1rem; line-height:1.4; margin-top:.5rem; }
+.display-shell .weather-main>div span { font-size:.77rem; color:#b3cedb; }
+.display-shell .weather-summary { margin-top:.4rem; font-size:.7rem; color:#b3cedb; }
+.display-shell .weather-overview .weather-range { display:table-cell; vertical-align:top; width:30%; margin:0; padding:.15rem 0 .15rem .8rem; border-left:1px solid #ffffff18; border-top:0; }
+.display-shell .weather-range>p { font-size:.65rem; color:#b3cedb; margin-bottom:.65rem; }
+.display-shell .weather-range dl { display:block; margin:0; }
+.display-shell .weather-range dl>div { display:block; margin-bottom:.7rem; }
+.display-shell .weather-range dt { font-size:.75rem; color:#b3cedb; }
+.display-shell .weather-range dd { font-size:1.4rem; line-height:1.2; margin:.15rem 0 0; }
+.display-shell .weather-days { margin-top:.6rem; padding-top:.5rem; border-top:1px solid #ffffff18; }
+.display-shell .weather-days-heading { display:flex; justify-content:space-between; margin-bottom:.45rem; font-size:.72rem; color:#b3cedb; }
+.display-shell .weather-day-list { list-style:none; padding:0; margin:0; }
+.display-shell .weather-day { display:table; table-layout:fixed; border-collapse:collapse; width:100%; height:2rem; min-height:0; font-size:.95rem; }
+.display-shell .weather-day+.weather-day { border-top:1px solid #ffffff0b; }
+.display-shell .weather-day>span,
+.display-shell .weather-day>strong { display:table-cell; vertical-align:middle; }
+.display-shell .weather-day-name { width:2.55rem; }
+.display-shell .weather-day-condition { width:1.8rem; text-align:center; }
+.display-shell .weather-day-condition .weather-symbol { width:1.5rem; height:1.5rem; }
+.display-shell .weather-day-low { width:2.3rem; text-align:right; color:#b3cedb; }
+.display-shell .weather-day-bar { padding:0 .65rem; }
+.display-shell .weather-day-bar .weather-day-track { display:block; position:relative; width:100%; height:.38rem; border-radius:1rem; background:#ffffff12; overflow:hidden; }
+.display-shell .weather-day-track>span { display:block; position:absolute; top:0; height:100%; min-width:2px; border-radius:1rem; background:linear-gradient(90deg,#61c8de,#a8dfc7,#f4ce77); }
+.display-shell .weather-day-high { width:2.2rem; text-align:right; }
+.display-shell .weather-bottom { margin-top:auto; padding-top:.65rem; font-size:.64rem; color:#b3cedb; }
+.display-shell .weather-days-unavailable { font-size:.8rem; color:#b3cedb; }
+/* Full-width supporting information stays aligned and legible from a distance. */
+.display-shell #dashboard>.deadlines { display:flex; margin-top:.8rem; padding:.7rem 1rem; border:1px solid #ffffff18; border-radius:.7rem; background:#002b4930; }
+.display-shell #dashboard>.deadlines .section-heading { margin:0 1.4rem 0 0; }
+.display-shell #dashboard>.deadlines #deadlines { display:flex; flex-wrap:wrap; gap:0; }
+.display-shell .deadline-row { margin-right:1.5rem; }
+.display-shell .deadline-row>div { min-width:0; }
+.display-shell .deadline-row h3 { font-size:1rem; }
+.display-shell .deadline-row p { font-size:.8rem; }
+.display-shell .deadline-image,.display-shell .notice-image { width:3.4rem; height:3.4rem; object-fit:contain; margin-right:.7rem; }
+.display-shell #dashboard>.notice-board { margin-top:.8rem; }
+.display-shell #notices { display:flex; flex-wrap:wrap; }
+.display-shell .notice { display:block; flex:1; margin-right:1rem; min-width:12rem; }
+.display-shell #dashboard>.buses { margin-top:.8rem; padding:.9rem 1.1rem .7rem; background:linear-gradient(115deg,#062e4b,#073956); }
+.display-shell .bus-heading { margin-bottom:.85rem; }
+.display-shell .bus-heading h2 { display:flex; align-items:center; }
+.display-shell .bus-symbol { margin-right:.55rem; }
+.display-shell .bus-heading .bus-live { font-size:.7rem; }
+.display-shell #bus-arrivals { display:flex; gap:0; }
+.display-shell .bus-location { width:50%; box-sizing:border-box; padding-right:1.1rem; }
+.display-shell .bus-location+.bus-location { padding:0 0 0 1.1rem; }
+.display-shell .bus-location h3 { font-size:1rem; margin-bottom:.8rem; }
+.display-shell .bus-directions { display:flex; gap:0; }
+.display-shell .bus-direction { width:50%; padding-right:.9rem; box-sizing:border-box; }
+.display-shell .bus-direction:last-child { padding-right:0; }
+.display-shell .bus-direction h4 { font-size:.72rem; margin-bottom:.5rem; color:#b3cedb; }
+.display-shell .bus-route { display:flex; flex-wrap:wrap; align-items:center; padding:.3rem 0; gap:0; }
+.display-shell .bus-route .bus-route-label { margin-right:.5rem; font-size:.85rem; padding:.25rem .35rem; }
+.display-shell .bus-destination { flex:1; min-width:3rem; font-size:.72rem; }
+.display-shell .bus-route p { display:flex; margin-left:.45rem; gap:0; font-size:1rem; }
+.display-shell .bus-route p>span+span { margin-left:.6rem; }
+.display-shell .bus-route p>span:first-child { font-size:1.5rem; }
+.display-shell .bus-route small { font-size:.6rem; }
+.display-shell .bus-status { margin-top:.7rem; padding-top:.5rem; font-size:.65rem; }
+.display-shell .display-footer { display:flex; justify-content:space-between; margin-top:.55rem; padding-top:0; font-size:.65rem; }
+.display-shell .display-footer nav { display:flex; gap:0; }
+.display-shell .display-footer a,.display-shell .display-footer button { font-size:.65rem; margin-left:.4rem; }
+.display-shell #special-view { min-height:75vh; }
+.display-shell #special-view.has-image { display:flex; flex-direction:row; align-items:center; }
+.display-shell #special-view.has-image .special-text { width:54%; }
+.display-shell #special-view.has-image .special-image { width:43%; max-height:65vh; margin-left:3%; object-fit:contain; }
+.display-shell #special-view .special-text h1:empty,
+.display-shell #special-view .special-copy:empty,
+.display-shell #special-view .special-meta:empty { display:none; }
+
+.display-shell #deadlines>.empty-state { padding:0; }
+
+/* Repeated feed refreshes should not replay the entrance animation on a wall display. */
+.display-shell .dashboard-grid>.panel,.display-shell .feature-card,.display-shell #dashboard>.deadlines,.display-shell #dashboard>.buses,.display-shell .event-slide { animation:none; }
