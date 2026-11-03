@@ -170,3 +170,32 @@ html.dashboard-display{font-size:clamp(12px,1.04vw,42px)}
 .display-shell .weather-day-track{position:relative;height:.32rem;border-radius:1rem;background:#ffffff0c;overflow:hidden}
 .display-shell .weather-day-track>span{position:absolute;top:0;height:100%;min-width:2px;border-radius:inherit;background:linear-gradient(90deg,#61c8de,#a8dfc7,#f4ce77)}
 .display-shell .weather-days-unavailable{font-size:.7rem;color:var(--muted);line-height:1.4}
+
+/* A compact community rotation shares the supporting row with deadlines. */
+.display-shell .support-strip{display:flex;align-items:stretch;margin-top:.85rem}
+.display-shell .support-strip>.deadlines{display:flex;align-items:center;flex:1;min-width:0;padding:.75rem 1.1rem;border:1px solid #ffffff18;border-radius:.7rem;background:#002b4930}
+.display-shell .support-strip>.deadlines .section-heading{margin:0 1.2rem 0 0;flex-shrink:0}
+.display-shell .support-strip>.deadlines .section-heading h2{font-size:.85rem;color:#b3cedb;font-weight:500}
+.display-shell .support-strip #deadlines{display:flex;flex:1;flex-wrap:wrap;gap:1.2rem;min-width:0}
+.display-shell .support-strip .deadline-row{padding:0;border:0;flex:1}
+.display-shell .support-strip #deadlines>.empty-state{padding:0;font-size:.85rem}
+.display-shell .support-strip.has-community>.deadlines{flex:0 0 43%;margin-right:1%}
+.display-shell .support-strip>.community-board{flex:1;min-width:0;display:flex;align-items:center;padding:.7rem 1rem;background:linear-gradient(115deg,#103f59,#0b485d);border:1px solid #79d3c83d;border-radius:.7rem}
+.display-shell .community-heading{flex-shrink:0;width:6.2rem;margin-right:1rem}
+.display-shell .community-heading h2{font-size:.8rem;font-weight:500;color:#b3cedb}
+.display-shell #community-position{display:block;margin-top:.3rem;color:#91b4c6;font-size:.62rem}
+.display-shell #community-content{flex:1;min-width:0}
+.display-shell .community-slide{display:flex;align-items:center}
+.display-shell .community-symbol{flex-shrink:0;width:2.6rem;height:2.6rem;margin-right:.85rem;color:#9cddd3}
+.display-shell [data-community-kind=birthday] .community-symbol{color:#f4cc9a}
+.display-shell .community-copy{min-width:0}
+.display-shell .community-label{color:#9cddd3;font-size:.59rem;letter-spacing:.07em;text-transform:uppercase;line-height:1.3;margin-bottom:.25rem}
+.display-shell [data-community-kind=birthday] .community-label{color:#f4cc9a}
+.display-shell .community-copy h3{font-size:1.14rem;line-height:1.15;letter-spacing:-.02em;overflow-wrap:break-word}
+.display-shell .community-detail{font-size:.78rem;line-height:1.3;color:#c2d9e1;margin-top:.3rem;overflow-wrap:break-word}
+/* Larger, unhurried date/time row and route colors that match the red Metrobus. */
+.display-shell .display-timebar{padding:.4rem .15rem 1rem}
+.display-shell .display-timebar .header-date{font-size:1.08rem;letter-spacing:.01em}
+.display-shell .display-timebar #clock{font-size:1.9rem;font-weight:550;letter-spacing:-.04em}
+.display-shell .bus-route .bus-route-label{background:#bf2638;border-color:#ed6a77;color:#fff;box-shadow:inset 0 1px 0 #ffffff18}
+.display-shell .bus-location h3 .bus-street{display:inline-block;font-size:.68rem;font-weight:400;color:#a8c4d2;margin-left:.45rem;letter-spacing:0}

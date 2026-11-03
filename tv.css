@@ -133,3 +133,23 @@ body { background:#003255; color:#f4f7fa; }
 
 /* Repeated feed refreshes should not replay the entrance animation on a wall display. */
 .display-shell .dashboard-grid>.panel,.display-shell .feature-card,.display-shell #dashboard>.deadlines,.display-shell #dashboard>.buses,.display-shell .event-slide { animation:none; }
+
+/* TV-first community strip and a more generous header. */
+.display-shell .display-timebar{height:3.7rem;padding:.25rem .15rem .9rem}
+.display-shell .display-timebar .header-date{font-size:1.3rem;letter-spacing:.015em}
+.display-shell .display-timebar #clock{font-size:2.25rem;letter-spacing:-.045em;font-weight:550}
+.display-shell .support-strip{margin-top:.8rem}
+.display-shell .support-strip>.deadlines{padding:.8rem 1rem}
+.display-shell .support-strip #deadlines{gap:0}
+.display-shell .support-strip .deadline-row{margin-right:1rem}
+.display-shell .support-strip .deadline-row:last-child{margin-right:0}
+.display-shell .support-strip.has-community>.deadlines{flex:0 0 43%;margin-right:1%}
+.display-shell .support-strip>.community-board{padding:.8rem 1rem}
+.display-shell .community-heading{width:6rem}
+.display-shell .community-heading h2{font-size:.85rem}
+.display-shell #community-position{font-size:.7rem}
+.display-shell .community-label{font-size:.65rem}
+.display-shell .community-copy h3{font-size:1.25rem}
+.display-shell .community-detail{font-size:.85rem}
+.display-shell .bus-location h3 .bus-street{font-size:.72rem;margin-left:.5rem}
+.display-shell .bus-route .bus-route-label{background:#bf2638;border-color:#ed6a77;color:#fff}

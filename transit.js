@@ -23,7 +23,7 @@ function routeRows(predictions){
 
 export function busMarkup(data,now=Date.now()){
   const stops=Array.isArray(data?.stops)?data.stops:[];
-  return ['34th St NW','35th St NW'].map(street=>`<section class="bus-location"><h3>Wisconsin Ave NW &amp; ${street}</h3><div class="bus-directions">${BUS_STOPS.filter(stop=>stop.street===street).map(stop=>{
+  return ['34th St NW','35th St NW'].map(street=>`<section class="bus-location"><h3>${street==='34th St NW'?'Safeway stop':'Trader Joe’s stop'} <span class="bus-street">Wisconsin Ave &amp; ${street}</span></h3><div class="bus-directions">${BUS_STOPS.filter(stop=>stop.street===street).map(stop=>{
     const result=stops.find(item=>item.id===stop.id);
     const fresh=result?.ok===true&&Number.isFinite(result.updatedAt)&&result.updatedAt<=now+5000&&now-result.updatedAt<=MAX_AGE;
     const rows=fresh&&Array.isArray(result.predictions)?routeRows(result.predictions):'';

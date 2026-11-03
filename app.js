@@ -1,3 +1,4 @@
+import './community.js?v=20261103-2';
 import { featuredEvent, isFeatured } from './event-feature.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, setPersistence, browserSessionPersistence, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
@@ -71,7 +72,8 @@ export async function start(config) {
     carousel.update(events,view==='dashboard');
     $('.agenda-note').textContent='Times shown in Washington, DC time.';
     $('#deadlines').innerHTML=deadlines.slice(0,2).map(e=>`<div class="deadline-row">${e.date?`<span class="date-block"><strong>${esc(e.date.slice(8))}</strong>${esc(dateLabel(e.date).split(' ')[0].toUpperCase())}</span>`:''}${imageMarkup(e,'deadline-image')}<div>${e.title?`<h3>${esc(e.title)}</h3>`:''}${e.description?`<p>${esc(e.description)}</p>`:''}</div></div>`).join('')||'<p class="empty-state">No upcoming deadlines.</p>';
-    const notices=upcoming(state.notices);
+    window.BISWCommunity.update(state.notices,dcDate());
+    const notices=upcoming(state.notices.filter(item=>!window.BISWCommunity.kind(item)));
     $('#notice-board').hidden=!notices.length;
     $('#notices').innerHTML=notices.map(e=>`<article class="notice">${imageMarkup(e,'notice-image')}<div>${e.title?`<h3>${esc(e.title)}</h3>`:''}${e.description?`<p>${esc(e.description)}</p>`:''}</div></article>`).join('');
     const feature=hasContent(state.feature)&&isCurrent(state.feature)?state.feature:null;
@@ -100,13 +102,75 @@ export async function start(config) {
   }
   function renderLists(){
     for(const kind of ['events','deadlines','notices']){
-      const items=[...state[kind]].sort((a,b)=>kind==='events'?(Number(isCurrent(b))-Number(isCurrent(a))||contentOrder(a,b)):contentOrder(a,b));
+      const items=state[kind].filter(item=>kind!=='notices'||!window.BISWCommunity.kind(item)).sort((a,b)=>kind==='events'?(Number(isCurrent(b))-Number(isCurrent(a))||contentOrder(a,b)):contentOrder(a,b));
       $(`#admin-${kind}`).innerHTML=items.map(e=>{const label=e.title||e.description?.slice(0,65)||'Picture only';return `<div class="admin-event ${kind==='events'&&isFeatured(e,state.feature)?'is-featured':''}">${imageMarkup(e,'admin-thumbnail')}<div class="admin-item-copy"><h3>${esc(label)}${kind==='events'&&isFeatured(e,state.feature)?' <span class="featured-badge">Featured</span>':''}</h3><p>${esc([e.date?dateLabel(e.date):'No date set',timeLabel(e.time),e.date&&e.date<dcDate()?'Past':''].filter(Boolean).join(' · '))}</p></div><div>${kind==='events'?`<button data-feature="${esc(e.id)}" ${!isCurrent(e)?'disabled title="Past events cannot be featured"':''}>${isFeatured(e,state.feature)?'Feature again':'Make featured'}</button>`:''}<button data-edit="${esc(e.id)}" data-kind="${kind}">Edit</button><button data-delete="${esc(e.id)}" data-kind="${kind}" aria-label="Remove ${esc(label)}">Remove</button></div></div>`;}).join('')||'<p class="empty-state">No items published.</p>';
     }
     $('#featured-event-summary').textContent=hasContent(state.feature)?`Currently featured: ${state.feature.title||'Untitled event'}${isCurrent(state.feature)?'':' (past event · hidden)'}`:'No featured event selected.';
+    renderCommunityLists();
     $('#event-count').textContent=`${state.events.length} events`;
     const view=activeView(state.display,state.feature,state.alert);
     document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
+  }
+  // Community records use the existing staff-only public notice collection. A stable ID
+  // prefix distinguishes them; their fields stay compatible with the live notice rules.
+  const communityEditing={birthday:null,offer:null};
+  function renderCommunityLists(){
+    if(!$('#workspace-community'))return;
+    for(const type of ['birthday','offer']){
+      const items=state.notices.filter(item=>window.BISWCommunity.kind(item)===type).sort((a,b)=>(type==='birthday'?a.date.slice(5).localeCompare(b.date.slice(5)):b.date.localeCompare(a.date))||a.title.localeCompare(b.title));
+      $(`#admin-${type==='birthday'?'birthdays':'offers'}`).innerHTML=items.map(item=>`<div class="admin-event"><div class="admin-item-copy"><h3>${esc(item.title)}</h3><p>${esc(type==='birthday'?`${dateLabel(item.date)} · every year`:`${item.description.replace(/\n/g,' · ')} · ${item.date<dcDate()?'Expired':'Until'} ${dateLabel(item.date)}`)}</p></div><div><button type="button" data-community-edit="${esc(item.id)}">Edit</button><button type="button" data-community-remove="${esc(item.id)}" aria-label="Remove ${esc(item.title)}">Remove</button></div></div>`).join('')||`<p class="empty-state">No ${type==='birthday'?'birthdays':'university offers'} saved yet.</p>`;
+    }
+  }
+  function setupCommunityEditor(){
+    if(!$('#workspace-community'))return;
+    const labels={birthday:'birthday',offer:'university offer'};
+    function reset(type){
+      const form=$(`#${type}-form`);communityEditing[type]=null;form.reset();for(const input of form.querySelectorAll('input'))input.setCustomValidity('');
+      $(`#cancel-${type}`).hidden=true;$(`#${type}-form-heading`).textContent=`Add a ${labels[type]}`;
+      form.querySelector('[type=submit]').textContent=`Save ${labels[type]}`;form.querySelector('.form-status').textContent='';
+      if(type==='offer')form.elements.date.value=new Date(Date.parse(dcDate()+'T12:00:00Z')+30*86400000).toISOString().slice(0,10);
+      else form.elements.month.value=dcDate().slice(5,7);
+    }
+    for(const type of ['birthday','offer']){
+      const form=$(`#${type}-form`);reset(type);
+      form.addEventListener('input',()=>{for(const input of form.querySelectorAll('input'))input.setCustomValidity('');});
+      form.addEventListener('change',()=>{for(const input of form.querySelectorAll('input'))input.setCustomValidity('');});
+      form.addEventListener('submit',async event=>{
+        event.preventDefault();const fields=new FormData(form),title=String(fields.get('title')||'').trim();
+        if(!title){form.elements.title.setCustomValidity('Enter a display name.');form.elements.title.reportValidity();return;}
+        let item;
+        if(type==='birthday'){
+          const month=String(fields.get('month')),day=Number(fields.get('day')),test=new Date(Date.UTC(2000,Number(month)-1,day));
+          if(test.getUTCMonth()!==Number(month)-1||test.getUTCDate()!==day){form.elements.day.setCustomValidity('Choose a valid day for this month.');form.elements.day.reportValidity();return;}
+          item={title,date:`2000-${month}-${String(day).padStart(2,'0')}`,description:String(fields.get('description')||'').trim()||'Happy birthday!'};
+        }else{
+          const university=String(fields.get('university')||'').trim(),course=String(fields.get('course')||'').trim(),date=String(fields.get('date'));
+          if(!university){form.elements.university.setCustomValidity('Enter the university name.');form.elements.university.reportValidity();return;}
+          if(date<dcDate()){form.elements.date.setCustomValidity('Choose today or a future display date.');form.elements.date.reportValidity();return;}
+          item={title,date,description:[university,course].filter(Boolean).join('\n')};
+        }
+        const id=communityEditing[type]||`community-${type}-${doc(collection(db,'notices')).id}`;
+        if(await write(form.querySelector('[type=submit]'),()=>setDoc(doc(db,'notices',id),item),`${type==='birthday'?'Birthday':'University offer'} saved. The community rotation updates automatically.`)){
+          reset(type);form.querySelector('.form-status').textContent='Saved. The community rotation updates automatically.';
+        }
+      });
+      $(`#cancel-${type}`).addEventListener('click',()=>{if(!form.querySelector('[type=submit]').disabled)reset(type);});
+    }
+    $('#workspace-community').addEventListener('click',async event=>{
+      const edit=event.target.closest('[data-community-edit]'),remove=event.target.closest('[data-community-remove]');
+      if(edit){
+        const item=state.notices.find(x=>x.id===edit.dataset.communityEdit);if(!item)return;
+        const type=window.BISWCommunity.kind(item),form=$(`#${type}-form`);if(form.querySelector('[type=submit]').disabled)return;
+        reset(type);communityEditing[type]=item.id;form.elements.title.value=item.title;
+        if(type==='birthday'){form.elements.month.value=item.date.slice(5,7);form.elements.day.value=Number(item.date.slice(8));form.elements.description.value=item.description||'';}
+        else{const [university,...course]=item.description.split('\n');form.elements.university.value=university;form.elements.course.value=course.join('\n');form.elements.date.value=item.date;}
+        $(`#${type}-form-heading`).textContent=`Edit ${labels[type]}`;form.querySelector('[type=submit]').textContent='Save changes';$(`#cancel-${type}`).hidden=false;form.elements.title.focus();
+      }
+      if(remove&&confirm('Remove this item from the community rotation?')){
+        const id=remove.dataset.communityRemove,item=state.notices.find(x=>x.id===id);if(!item)return;const type=window.BISWCommunity.kind(item);
+        if(await write(remove,()=>deleteDoc(doc(db,'notices',id)),'Community item removed.')&&communityEditing[type]===id)reset(type);
+      }
+    });
   }
   function fillSettings(key){
     if(!['feature','alert'].includes(key)||!state[key])return;
@@ -122,8 +186,9 @@ export async function start(config) {
     $('#fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else status('Full screen is not supported in this browser.');}catch{status('Full screen is unavailable in this browser.');}});
     document.addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?'Exit full screen':'Full screen';});
     const {startWeather}=await import('./weather.js');startWeather();
-    const {startTransit}=await import('./transit.js');startTransit();
+    const {startTransit}=await import('./transit.js?v=20261103-2');startTransit();
   }else{
+    setupCommunityEditor();
     auth=getAuth(app);await setPersistence(auth,browserSessionPersistence);
     $('#sign-in').disabled=false;$('#reset-password').disabled=false;
     $('#login-form').addEventListener('submit',async e=>{e.preventDefault();const button=$('#sign-in');button.disabled=true;status('Signing in…');try{await signInWithEmailAndPassword(auth,$('#email').value.trim(),$('#password').value);$('#password').value='';}catch(error){status(message(error));}finally{button.disabled=false;}});

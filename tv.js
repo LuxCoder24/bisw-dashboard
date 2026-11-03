@@ -88,7 +88,8 @@
     var card=document.querySelector('.feature-card');card.className='feature-card'+(markup?' has-image':'')+(markup&& !feature.title&&!feature.description?' image-only':'');
     var nextPages=eventPages(upcoming(state.events));if(JSON.stringify(nextPages)!==JSON.stringify(pages)){pages=nextPages;slide=0;}paintEvents();
     el('deadlines').innerHTML=upcoming(state.deadlines).map(function(item){return '<div class="deadline-row">'+picture(item,'deadline-image')+'<div><h3>'+esc(item.title)+'</h3><p>'+esc([dateLabel(item.date),item.description].filter(Boolean).join(' · '))+'</p></div></div>';}).join('')||'<p class="empty-state">No upcoming deadlines.</p>';
-    var notices=upcoming(state.notices);el('notice-board').hidden=!notices.length;
+    window.BISWCommunity.update(state.notices,today(),fitDisplay);
+    var notices=upcoming(state.notices.filter(function(item){return !window.BISWCommunity.kind(item);}));el('notice-board').hidden=!notices.length;
     el('notices').innerHTML=notices.map(function(item){return '<article class="notice">'+picture(item,'notice-image')+'<h3>'+esc(item.title)+'</h3><p>'+esc(item.description)+'</p></article>';}).join('');
     var view=state.display&&state.display.expiresAt>Date.now()?state.display.view:'dashboard';
     if(view==='event'&&!feature)view='dashboard';if(view==='alert'&&!content(state.alert))view='dashboard';
@@ -192,7 +193,7 @@ var symbols = {
   }
   function paintTransit() {
     var now=Date.now(),stops=transit&&transit.stops||[],live=0;
-    el('bus-arrivals').innerHTML=['34th St NW','35th St NW'].map(function(street,index){return '<section class="bus-location"><h3>Wisconsin Ave NW &amp; '+street+'</h3><div class="bus-directions">'+[0,1].map(function(direction){var ids=['1001637','1001645','1001706','1001699'],stop=null;stops.forEach(function(s){if(s.id===ids[index*2+direction])stop=s;});var fresh=stop&&stop.ok&&typeof stop.updatedAt==='number'&&stop.updatedAt<=now+5000&&now-stop.updatedAt<=90000;
+    el('bus-arrivals').innerHTML=['34th St NW','35th St NW'].map(function(street,index){return '<section class="bus-location"><h3>'+(index?'Trader Joe’s stop':'Safeway stop')+' <span class="bus-street">Wisconsin Ave &amp; '+street+'</span></h3><div class="bus-directions">'+[0,1].map(function(direction){var ids=['1001637','1001645','1001706','1001699'],stop=null;stops.forEach(function(s){if(s.id===ids[index*2+direction])stop=s;});var fresh=stop&&stop.ok&&typeof stop.updatedAt==='number'&&stop.updatedAt<=now+5000&&now-stop.updatedAt<=90000;
       if(fresh)live++;var groups=[],byKey={};if(fresh)(stop.predictions||[]).slice().sort(function(a,b){return a.minutes-b.minutes;}).forEach(function(p){if(typeof p.route!=='string'||typeof p.minutes!=='number'||p.minutes<0||p.minutes%1)return;var key=p.route+'|'+p.destination,g=byKey[key];if(!g){g={route:p.route,destination:p.destination,times:[]};byKey[key]=g;groups.push(g);}if(g.times.length<2)g.times.push(p.minutes);});
       return '<div class="bus-direction"><h4>'+(direction?'↓ Southbound':'↑ Northbound')+'</h4>'+(groups.slice(0,2).map(function(g){return '<div class="bus-route"><strong class="bus-route-label">'+esc(g.route)+'</strong><span class="bus-destination">'+esc(g.destination)+'</span><p>'+g.times.map(function(t){return '<span>'+(t===0?'Due':t+'<small> min</small>')+'</span>';}).join('')+'</p></div>';}).join('')||'<p class="bus-empty">'+(fresh?'No live arrivals listed.':'Live arrivals unavailable.')+'</p>')+'</div>';
     }).join('')+'</div></section>';}).join('');

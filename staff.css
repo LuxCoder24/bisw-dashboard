@@ -63,3 +63,6 @@ body[data-page=admin]{font-size:16px}
 .manual-feature{margin-top:24px;padding-top:12px;border-top:1px solid var(--line)}
 @media(max-width:760px){.admin-shell .event-composer{padding:24px 20px!important}.event-toolbar{gap:12px}.event-toolbar .primary{min-width:120px;padding:12px}.event-composer .form-row{grid-template-columns:1fr}.event-list-panel .admin-event>div:last-child{width:100%;margin:0}.event-list-panel .admin-event>div:last-child button:first-child{margin-right:auto}.composer-actions{position:sticky;bottom:0;background:var(--panel);padding-bottom:12px}}
 @media(prefers-reduced-motion:no-preference){.event-composer:not([hidden]){animation:composer-in .18s ease-out}@keyframes composer-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}}
+
+.community-list-heading{margin-top:32px!important;padding-top:24px;border-top:1px solid var(--line)}
+#workspace-community .admin-item-copy p{white-space:normal;overflow-wrap:anywhere}
